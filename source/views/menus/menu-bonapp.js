@@ -1,19 +1,16 @@
 // @flow
 
 import * as React from 'react'
-import qs from 'querystring'
 import sample from 'lodash/sample'
 import moment from 'moment-timezone'
 import delay from 'delay'
-import retry from 'p-retry'
-
 import LoadingView from '../components/loading'
 import {NoticeView} from '../components/notice'
 import {ConnectedFancyMenu as FancyMenu} from './components/fancy-menu'
 import {tracker} from '../../analytics'
 import bugsnag from '../../bugsnag'
 import * as connector from './lib/query-bonapp'
-
+import {fetch as fetchBonappData} from './lib/fetch-bonapp.data'
 import type {TopLevelViewPropsType} from '../types'
 import type {
   BonAppMenuInfoType as MenuInfoType,
@@ -21,13 +18,6 @@ import type {
 } from './types'
 
 const CENTRAL_TZ = 'America/Winnipeg'
-
-const bonappMenuBaseUrl = 'http://legacy.cafebonappetit.com/api/2/menus'
-const bonappCafeBaseUrl = 'http://legacy.cafebonappetit.com/api/2/cafes'
-const fetchJsonQuery = (url, query) =>
-  fetchJson(`${url}?${qs.stringify(query)}`)
-
-const BONAPP_HTML_ERROR_CODE = 'bonapp-html'
 
 type Props = TopLevelViewPropsType & {
   cafeId: string,
@@ -67,34 +57,23 @@ export class BonAppHostedMenu extends React.PureComponent<Props, State> {
     }
   }
 
-  requestMenu = (cafeId: string) => () =>
-    fetchJsonQuery(bonappMenuBaseUrl, {cafe: cafeId})
-
-  requestCafe = (cafeId: string) => () =>
-    fetchJsonQuery(bonappCafeBaseUrl, {cafe: cafeId})
-
   fetchData = async (props: Props) => {
-    let cafeMenu: ?MenuInfoType = null
-    let cafeInfo: ?CafeInfoType = null
+    const result = await fetchBonappData({cafeId: props.cafeId})
 
-    try {
-      ;[cafeMenu, cafeInfo] = await Promise.all([
-        retry(this.requestMenu(props.cafeId), {retries: 3}),
-        retry(this.requestCafe(props.cafeId), {retries: 3}),
-      ])
-    } catch (error) {
-      if (error.message === "JSON Parse error: Unrecognized token '<'") {
-        this.setState(() => ({errormsg: BONAPP_HTML_ERROR_CODE}))
-      } else {
-        tracker.trackException(error.message)
-        bugsnag.notify(error)
-        this.setState(() => ({errormsg: error.message}))
-      }
+    if (result.type === 'error') {
+      const errorMessage = result.payload
+      this.setState(() => ({errormsg: errorMessage}))
+    } else if (result.type === 'success') {
+      const {cafeMenu, cafeInfo} = result.payload
+      const now = moment.tz(CENTRAL_TZ)
+      this.setState(() => ({cafeMenu, cafeInfo, now}))
+    } else {
+      ;(result.type: empty)
     }
-
-    this.setState(() => ({cafeMenu, cafeInfo, now: moment.tz(CENTRAL_TZ)}))
   }
 
+  // all retry does is re-set `loading` and `errormsg` to falsy values
+  // after a success
   retry = () => {
     this.fetchData(this.props).then(() => {
       this.setState(() => ({loading: false, errormsg: ''}))
@@ -122,11 +101,7 @@ export class BonAppHostedMenu extends React.PureComponent<Props, State> {
     }
 
     if (this.state.errormsg) {
-      let msg = `Error: ${this.state.errormsg}`
-      if (this.state.errormsg === BONAPP_HTML_ERROR_CODE) {
-        msg =
-          'Something between you and BonApp is having problems. Try again in a minute or two?'
-      }
+      const msg = `Error: ${this.state.errormsg}`
       return <NoticeView buttonText="Again!" onPress={this.retry} text={msg} />
     }
 
