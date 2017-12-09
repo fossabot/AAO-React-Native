@@ -11,10 +11,10 @@ import {HomeView, EditHomeView} from './views/home'
 import StreamingView, {KSTOScheduleView} from './views/streaming'
 import {
   MenusView,
-  CarletonBurtonMenuScreen,
-  CarletonLDCMenuScreen,
-  CarletonWeitzMenuScreen,
-  CarletonSaylesMenuScreen,
+  // CarletonBurtonMenuScreen,
+  // CarletonLDCMenuScreen,
+  // CarletonWeitzMenuScreen,
+  // CarletonSaylesMenuScreen,
 } from './views/menus'
 import {FilterView} from './views/components/filter'
 import NewsView from './views/news'
@@ -88,10 +88,10 @@ export const AppNavigator = StackNavigator(
     TransportationView: {screen: TransportationView},
     OtherModesDetailView: {screen: OtherModesDetailView},
     BusMapView: {screen: BusMapView},
-    CarletonBurtonMenuView: {screen: CarletonBurtonMenuScreen},
-    CarletonLDCMenuView: {screen: CarletonLDCMenuScreen},
-    CarletonWeitzMenuView: {screen: CarletonWeitzMenuScreen},
-    CarletonSaylesMenuView: {screen: CarletonSaylesMenuScreen},
+    // CarletonBurtonMenuView: {screen: CarletonBurtonMenuScreen},
+    // CarletonLDCMenuView: {screen: CarletonLDCMenuScreen},
+    // CarletonWeitzMenuView: {screen: CarletonWeitzMenuScreen},
+    // CarletonSaylesMenuView: {screen: CarletonSaylesMenuScreen},
   },
   {
     navigationOptions: {

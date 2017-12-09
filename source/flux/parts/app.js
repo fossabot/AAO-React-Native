@@ -1,5 +1,7 @@
 // @flow
 
+import moment from 'moment-timezone'
+
 type ViewName = string
 
 export const PUSH_VIEW = 'app/PUSH_VIEW'
@@ -23,6 +25,7 @@ export type State = {|
   +currentView: ?ViewName,
   +viewStack: Array<ViewName>,
   +isConnected: boolean,
+  +now: moment,
 |}
 
 function handleViewPop(state: State) {
@@ -45,6 +48,7 @@ const initialState = {
   currentView: null,
   viewStack: [],
   isConnected: false,
+  now: moment.tz('US/Central'),
 }
 
 export function app(state: State = initialState, action: Action) {

@@ -12,6 +12,7 @@ import type {
   StationMenuType,
   MenuItemContainerType,
 } from '../types'
+import type {ActionEnum} from './fetch-types'
 
 function makePretendMeals(args: {
   foodItems: MenuItemContainerType,
@@ -53,31 +54,31 @@ function getLocalData() {
   }
 }
 
-async function getData(
-  url,
-): Promise<{
-  type: 'error' | 'success',
+type DataResponse = {
   foodItems: Array<MenuItemType>,
   stationMenus: Array<StationMenuType>,
   corIcons: MasterCorIconMapType,
-}> {
+}
+
+async function getData(url): Promise<DataResponse> {
   if (process.env.NODE_ENV === 'development') {
-    return {type: 'success', ...getLocalData()}
+    return getLocalData()
   }
 
   try {
-    const data = await getRemoteData(url)
-    return {type: 'success', ...data}
+    return await getRemoteData(url)
   } catch (err) {
     tracker.trackException(err.message)
     bugsnag.notify(err)
 
-    return {type: 'error', ...getLocalData()}
+    return getLocalData()
   }
 }
 
-export async function fetch(args: {url: string}) {
-  const {type, foodItems, stationMenus, corIcons} = await getData(args.url)
+export async function fetch(args: {url: string}): Promise<ActionEnum> {
+  const {foodItems, stationMenus, corIcons} = await getData(
+    args.url,
+  )
 
   const upgradedFoodItems: MenuItemContainerType = fromPairs(
     foodItems.map(upgradeMenuItem).map(item => [item.id, item]),
@@ -86,7 +87,12 @@ export async function fetch(args: {url: string}) {
   const meals = makePretendMeals({foodItems: upgradedFoodItems, stationMenus})
 
   return {
-    type,
-    payload: {foodItems: upgradedFoodItems, corIcons, meals},
+    type: 'success',
+    payload: {
+      cafeMessage: null,
+      foodItems: upgradedFoodItems,
+      corIcons,
+      meals,
+    },
   }
 }
