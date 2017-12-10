@@ -4,7 +4,10 @@ import {type ReduxState} from '../index'
 import moment from 'moment-timezone'
 
 import {trackMenuFilters} from '../../analytics'
-import {type FilterType, applyFiltersToItem} from '../../views/components/filter'
+import {
+  type FilterType,
+  applyFiltersToItem,
+} from '../../views/components/filter'
 
 import {fetch as fetchBonappData} from '../../views/menus/lib/fetch-bonapp-data'
 import {fetch as fetchGithubData} from '../../views/menus/lib/fetch-github-data'
@@ -13,6 +16,7 @@ import type {
   ProcessedMealType,
   MasterCorIconMapType,
   StationMenuType,
+  MenuItemType,
 } from '../../views/menus/types'
 
 type Dispatch<A: Action> = (action: A | Promise<A> | ThunkAction<A>) => any
@@ -66,9 +70,9 @@ type UpdateMenuDataActions =
   | UpdateMenuDataSuccessAction
   | UpdateMenuDataErrorAction
 
-type UpdateMenuDataArgs =
-  | {cafeType: 'bonapp', cafeId: string, ignoreProvidedMenus: boolean}
-  | {cafeType: 'github', cafeUrl: string}
+export type UpdateMenuDataArgs =
+  | {cafeType: 'bonapp', cafeId: string, ignoreProvidedMenus?: boolean}
+  | {cafeType: 'github', menuUrl: string}
 
 export function updateMenuData(
   menuName: string,
@@ -82,10 +86,10 @@ export function updateMenuData(
 
     let response = null
     if (args.cafeType === 'bonapp') {
-      const {cafeId, ignoreProvidedMenus} = args
+      const {cafeId, ignoreProvidedMenus = false} = args
       response = await fetchBonappData({cafeId, now, ignoreProvidedMenus})
     } else if (args.cafeType === 'github') {
-      response = await fetchGithubData({url: args.cafeUrl})
+      response = await fetchGithubData({url: args.menuUrl})
     } else {
       ;(args.cafeType: empty)
     }
@@ -109,7 +113,7 @@ export function updateMenuData(
           corIcons: response.payload.corIcons,
         },
       })
-    }  else if (response.type === 'error') {
+    } else if (response.type === 'error') {
       dispatch({
         type: UPDATE_MENU_DATA_FAILURE,
         payload: {menuName, error: response.payload},
@@ -120,23 +124,80 @@ export function updateMenuData(
   }
 }
 
+/*
+
+  areSpecialsFiltered = filters => Boolean(filters.find(this.isSpecialsFilter))
+  isSpecialsFilter = f =>
+    f.enabled && f.type === 'toggle' && f.spec.label === 'Only Show Specials'
+
+*/
+
+/*
+
+initial filters
+
+
+  updateFilters = (props: Props) => {
+    const {now, menu: {foodItems, corIcons, filters, meals}} = props
+
+    // prevent ourselves from overwriting the filters from redux on mount
+    if (filters.length) {
+      return
+    }
+
+    const newFilters = buildFilters(values(foodItems), corIcons, meals, now)
+    props.changeFilters(newFilters)
+  }
+
+
+*/
+
+type GroupedMenu = {title: string, data: Array<MenuItemType>}
+
+function groupMenuData(
+  filters: Array<FilterType>,
+  foodItems: MenuItemContainerType,
+  stations: Array<StationMenuType>,
+): Array<GroupedMenu> {
+  const derefrenceMenuItems = menu =>
+    menu.items
+      // Dereference each menu item
+      .map(id => foodItems[id])
+      // Ensure that the referenced menu items exist,
+      // and apply the selected filters to the items in the menu
+      .filter(item => item && applyFiltersToItem(filters, item))
+
+  const menusWithItems = stations
+    // We're grouping the menu items in a [label, Array<items>] tuple.
+    .map(menu => [menu.label, derefrenceMenuItems(menu)])
+    // We only want to show stations with at least one item in them
+    .filter(([_, items]) => items.length)
+    // We need to map the tuples into objects for SectionList
+    .map(([title, data]) => ({title, data}))
+
+  return menusWithItems
+}
+
 export type Action =
   | UpdateMenuFiltersAction
   | UpdateMenuDataAction
   | UpdateMenuDataSuccessAction
   | UpdateMenuDataErrorAction
 
+export type SingleMenuState = {
+  loading: boolean,
+  isSpecialsFilterEnabled: boolean,
+  groupedMenuData: Array<GroupedMenu>,
+  filters: Array<FilterType>,
+  cafeMessage?: ?string,
+  cafeError: ?Error,
+  foodItems: MenuItemContainerType,
+  meals: Array<ProcessedMealType>,
+  corIcons: MasterCorIconMapType,
+}
+
 export type State = {
-  +[key: string]: {
-    loading: boolean,
-    filters: Array<FilterType>,
-    cafeMessage?: ?string,
-    cafeError: ?Error,
-    foodItems: MenuItemContainerType,
-    meals: Array<ProcessedMealType>,
-    corIcons: MasterCorIconMapType,
-    name: string,
-  },
+  +[key: string]: SingleMenuState,
 }
 
 export function menus(state: State = {}, action: Action) {

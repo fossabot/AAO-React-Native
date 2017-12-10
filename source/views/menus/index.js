@@ -22,7 +22,10 @@ export const MenusView = TabNavigator(
     StavHallMenuView: {
       screen: ({navigation}) => (
         <ReduxMenu
-          cafeId="261"
+          info={{
+            type: 'bonapp',
+            cafeId: '261',
+          }}
           loadingMessage={[
             'Hunting Ferndale Turkey…',
             'Tracking wild vegan burgers…',
@@ -33,7 +36,6 @@ export const MenusView = TabNavigator(
           ]}
           name="Stav Hall"
           navigation={navigation}
-          type="bonapp"
         />
       ),
       navigationOptions: {
@@ -45,8 +47,11 @@ export const MenusView = TabNavigator(
     TheCageMenuView: {
       screen: ({navigation}) => (
         <ReduxMenu
-          cafeId="262"
           ignoreProvidedMenus={true}
+          info={{
+            type: 'bonapp',
+            cafeId: '262',
+          }}
           loadingMessage={[
             'Checking for vegan cookies…',
             'Serving up some shakes…',
@@ -56,7 +61,6 @@ export const MenusView = TabNavigator(
           ]}
           name="The Cage"
           navigation={navigation}
-          type="bonapp"
         />
       ),
       navigationOptions: {
@@ -68,6 +72,11 @@ export const MenusView = TabNavigator(
     ThePauseMenuView: {
       screen: ({navigation}) => (
         <ReduxMenu
+          info={{
+            type: 'github',
+            menuUrl:
+              'https://stodevx.github.io/AAO-React-Native/pause-menu.json',
+          }}
           loadingMessage={[
             'Mixing up a shake…',
             'Spinning up pizzas…',
@@ -75,10 +84,8 @@ export const MenusView = TabNavigator(
             'Putting ice cream on the cookies…',
             'Fixing the oven…',
           ]}
-          menuUrl="https://stodevx.github.io/AAO-React-Native/pause-menu.json"
           name="The Pause"
           navigation={navigation}
-          type="github"
         />
       ),
       navigationOptions: {

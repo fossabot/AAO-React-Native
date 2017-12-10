@@ -71,7 +71,7 @@ export const AppNavigator = StackNavigator(
     EditHomeView: {screen: EditHomeView},
     EventDetailView: {screen: EventDetailView},
     FaqView: {screen: FaqView},
-    FilterView: {screen: FilterView},
+    MenuFilterView: {screen: FilterView},
     HelpView: {screen: HelpView},
     JobDetailView: {screen: JobDetailView},
     LegalView: {screen: LegalView},
