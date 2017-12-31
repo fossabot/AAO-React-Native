@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {View, StyleSheet, Platform} from 'react-native'
 import {DietaryTags} from './dietary-tags'
 import {Row, Column} from '../../components/layout'
@@ -8,9 +8,8 @@ import type {MenuItemType, MasterCorIconMapType} from '../types'
 import * as c from '../../components/colors'
 import Icon from 'react-native-vector-icons/Ionicons'
 
-const specialsIcon = Platform.OS === 'ios'
-  ? 'ios-star-outline'
-  : 'md-star-outline'
+const specialsIcon =
+  Platform.OS === 'ios' ? 'ios-star-outline' : 'md-star-outline'
 
 type FoodItemPropsType = {|
   corIcons: MasterCorIconMapType,
@@ -29,15 +28,15 @@ export function FoodItemRow({
   const {left = 0} = props.spacing
   return (
     <ListRow
-      style={[styles.container, props.style]}
-      fullWidth={true}
       arrowPosition="none"
+      fullWidth={true}
+      style={[styles.container, props.style]}
     >
       <Row alignItems="center">
         <View style={[styles.badge, {width: left}]}>
-          {badgeSpecials && data.special
-            ? <Icon style={styles.badgeIcon} name={specialsIcon} />
-            : null}
+          {badgeSpecials && data.special ? (
+            <Icon name={specialsIcon} style={styles.badgeIcon} />
+          ) : null}
         </View>
 
         <Column flex={1}>

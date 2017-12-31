@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {Text, Image, StyleSheet} from 'react-native'
 import type {ListType, ListItemSpecType} from './types'
 import {Section, Cell} from 'react-native-tableview-simple'
@@ -67,19 +67,23 @@ export function ListSection({filter, onChange}: PropsType) {
   let buttons = options.map(val => (
     <Cell
       key={val.title}
-      onPress={() => buttonPushed(val)}
-      disableImageResize={true}
-      image={
-        spec.showImages && <Image style={styles.icon} source={val.image} />
-      }
-      accessory={!includes(selected, val) && 'Checkmark'}
-      cellStyle="RightDetail"
+      accessory={includes(selected, val) ? 'Checkmark' : undefined}
       cellContentView={
         <Column style={styles.content}>
           <Text style={styles.title}>{val.title}</Text>
           {val.detail ? <Text style={styles.detail}>{val.detail}</Text> : null}
         </Column>
       }
+      cellStyle="RightDetail"
+      disableImageResize={true}
+      image={
+        spec.showImages ? (
+          <Image source={val.image} style={styles.icon} />
+        ) : (
+          undefined
+        )
+      }
+      onPress={() => buttonPushed(val)}
     />
   ))
 
@@ -87,9 +91,9 @@ export function ListSection({filter, onChange}: PropsType) {
     const showAllButton = (
       <Cell
         key="__show_all"
-        title="Show All"
+        accessory={selected.length === options.length ? 'Checkmark' : undefined}
         onPress={showAll}
-        accessory={selected.length === options.length ? 'Checkmark' : null}
+        title="Show All"
       />
     )
     buttons = [showAllButton].concat(buttons)
@@ -97,8 +101,8 @@ export function ListSection({filter, onChange}: PropsType) {
 
   return (
     <Section
-      header={title.toUpperCase()}
       footer={caption}
+      header={title.toUpperCase()}
       separatorInsetLeft={hasImageColumn ? 45 : undefined}
     >
       {buttons}

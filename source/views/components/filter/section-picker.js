@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {Picker, StyleSheet} from 'react-native'
 import * as c from '../colors'
 import type {PickerType} from './types'
@@ -27,7 +27,7 @@ export function PickerSection({filter, onChange}: PropsType) {
   }
 
   return (
-    <Section header={title.toUpperCase()} footer={caption}>
+    <Section footer={caption} header={title.toUpperCase()}>
       <Picker
         onValueChange={pickerPicked}
         selectedValue={JSON.stringify(selected || options[0])}

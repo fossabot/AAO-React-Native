@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {
   TouchableOpacity,
   TouchableHighlight,
@@ -14,6 +14,7 @@ type PropsType = {
   children?: any,
   borderless?: boolean,
   style?: any,
+  containerStyle?: any,
 }
 export const Touchable = ({
   children,
@@ -21,6 +22,7 @@ export const Touchable = ({
   highlight = true,
   borderless = false,
   onPress = () => {},
+  containerStyle,
   ...props
 }: PropsType) => {
   // The child <View> is required; the Touchable needs a View as its direct child.
@@ -34,20 +36,27 @@ export const Touchable = ({
         ? {underlayColor: '#d9d9d9'}
         : {activeOpacity: 0.65}
       return (
-        <Component onPress={onPress} {...innerProps} {...props}>
+        <Component
+          onPress={onPress}
+          {...innerProps}
+          style={containerStyle}
+          {...props}
+        >
           {content}
         </Component>
       )
     }
     case 'android': {
       const canBorderless = Platform.Version >= 21
-      const background = borderless && canBorderless
-        ? TouchableNativeFeedback.SelectableBackgroundBorderless()
-        : TouchableNativeFeedback.SelectableBackground()
+      const background =
+        borderless && canBorderless
+          ? TouchableNativeFeedback.SelectableBackgroundBorderless()
+          : TouchableNativeFeedback.SelectableBackground()
       return (
         <TouchableNativeFeedback
-          onPress={onPress}
           background={background}
+          onPress={onPress}
+          style={containerStyle}
           {...props}
         >
           {content}

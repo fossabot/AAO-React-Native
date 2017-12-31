@@ -56,7 +56,7 @@ export const allViews: ViewType[] = [
   },
   {
     type: 'url',
-    url: 'https://www.stolaf.edu/personal/directory/index.cfm',
+    url: 'https://www.stolaf.edu/personal/index.cfm',
     view: 'DirectoryView',
     title: 'Directory',
     icon: 'v-card',
@@ -129,6 +129,22 @@ export const allViews: ViewType[] = [
     tint: c.chartreuse,
     gradient: c.tealToSeafoam,
   },
+	{
+    url: 'https://moodle.stolaf.edu/',
+    view: 'MoodleView',
+    title: 'Moodle',
+    icon: 'graduation-cap',
+    tint: c.cantaloupe,
+    gradient: c.yellowToGoldDark,
+  },
+  //   {
+  //     type: 'view',
+  //     view: 'HelpView',
+  //     title: 'Report A Problem',
+  //     icon: 'help',
+  //     tint: c.lavender,
+  //     gradient: c.purpleToIndigo,
+  //   },
 ]
 
 export const allViewNames = allViews.map(v => v.view)

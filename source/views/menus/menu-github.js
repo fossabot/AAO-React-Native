@@ -1,8 +1,8 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import LoadingView from '../components/loading'
 import {NoticeView} from '../components/notice'
-import {FancyMenu} from './components/fancy-menu'
+import {ConnectedFancyMenu as FancyMenu} from './components/fancy-menu'
 import type {TopLevelViewPropsType} from '../types'
 import type momentT from 'moment'
 import moment from 'moment-timezone'
@@ -19,19 +19,27 @@ import type {
 import {upgradeMenuItem, upgradeStation} from './lib/process-menu-shorthands'
 import {data as fallbackMenu} from '../../../docs/pause-menu.json'
 import {tracker} from '../../analytics'
+import bugsnag from '../../bugsnag'
 const CENTRAL_TZ = 'America/Winnipeg'
 
 const githubMenuBaseUrl = 'https://stodevx.github.io/AAO-React-Native'
 
-export class GitHubHostedMenu extends React.Component {
-  state: {
-    error: ?Error,
-    loading: boolean,
-    now: momentT,
-    foodItems: MenuItemContainerType,
-    corIcons: MasterCorIconMapType,
-    meals: ProcessedMealType[],
-  } = {
+type Props = TopLevelViewPropsType & {
+  name: string,
+  loadingMessage: string[],
+}
+
+type State = {
+  error: ?Error,
+  loading: boolean,
+  now: momentT,
+  foodItems: MenuItemContainerType,
+  corIcons: MasterCorIconMapType,
+  meals: ProcessedMealType[],
+}
+
+export class GitHubHostedMenu extends React.PureComponent<Props, State> {
+  state = {
     error: null,
     loading: true,
     now: moment.tz(CENTRAL_TZ),
@@ -42,11 +50,6 @@ export class GitHubHostedMenu extends React.Component {
 
   componentWillMount() {
     this.fetchData()
-  }
-
-  props: TopLevelViewPropsType & {
-    name: string,
-    loadingMessage: string[],
   }
 
   fetchData = async () => {
@@ -63,6 +66,7 @@ export class GitHubHostedMenu extends React.Component {
       corIcons = data.corIcons || {}
     } catch (err) {
       tracker.trackException(err.message)
+      bugsnag.notify(err)
       console.warn(err)
       foodItems = fallbackMenu.foodItems || []
       stationMenus = fallbackMenu.stationMenus || []
@@ -75,12 +79,12 @@ export class GitHubHostedMenu extends React.Component {
       corIcons = fallbackMenu.corIcons || {}
     }
 
-    foodItems = fromPairs(
+    const upgradedFoodItems = fromPairs(
       foodItems.map(upgradeMenuItem).map(item => [item.id, item]),
     )
     stationMenus = stationMenus.map((menu, index) => ({
       ...upgradeStation(menu, index),
-      items: filter(foodItems, item => item.station === menu.label).map(
+      items: filter(upgradedFoodItems, item => item.station === menu.label).map(
         item => item.id,
       ),
     }))
@@ -88,7 +92,7 @@ export class GitHubHostedMenu extends React.Component {
     this.setState({
       loading: false,
       corIcons,
-      foodItems,
+      foodItems: upgradedFoodItems,
       meals: [
         {
           label: 'Menu',
@@ -112,13 +116,12 @@ export class GitHubHostedMenu extends React.Component {
 
     return (
       <FancyMenu
-        route={this.props.route}
-        navigator={this.props.navigator}
         foodItems={this.state.foodItems}
-        menuCorIcons={this.state.corIcons}
         meals={this.state.meals}
-        now={this.state.now}
+        menuCorIcons={this.state.corIcons}
         name={this.props.name}
+        navigation={this.props.navigation}
+        now={this.state.now}
       />
     )
   }

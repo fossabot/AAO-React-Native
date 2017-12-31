@@ -21,16 +21,25 @@ export function getText(elem: Object | Object[]): string {
 }
 
 function getTextWithSpaces(elem: Object | Object[]): string {
-  if (Array.isArray(elem)) return elem.map(getText).join(' ')
-  if (elem.type === 'tag') return getText(elem.children)
+  if (Array.isArray(elem)) return elem.map(getTextWithSpaces).join(' ')
+  if (elem.type === 'tag') return getTextWithSpaces(elem.children)
   if (elem.type === 'text') return elem.data
   return ''
 }
 
 export function getTrimmedTextWithSpaces(elem: Object | Object[]): string {
-  return getTextWithSpaces(elem).split(/\s+/).join(' ').trim()
+  return getTextWithSpaces(elem)
+    .split(/\s+/)
+    .join(' ')
+    .trim()
+}
+
+export function removeHtmlWithRegex(str: string): string {
+  return str.replace(/<[^>]*>/g, ' ')
 }
 
 export function fastGetTrimmedText(str: string): string {
-  return str.replace(/<[^>]*>|\s+/g, ' ').replace(/\s+/g, ' ').trim()
+  return removeHtmlWithRegex(str)
+    .replace(/\s+/g, ' ')
+    .trim()
 }

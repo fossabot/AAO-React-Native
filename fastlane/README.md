@@ -10,34 +10,49 @@ xcode-select --install
 
 ## Choose your installation method:
 
-<table width="100%" >
-<tr>
-<th width="33%"><a href="http://brew.sh">Homebrew</a></td>
-<th width="33%">Installer Script</td>
-<th width="33%">Rubygems</td>
-</tr>
-<tr>
-<td width="33%" align="center">macOS</td>
-<td width="33%" align="center">macOS</td>
-<td width="33%" align="center">macOS or Linux with Ruby 2.0.0 or above</td>
-</tr>
-<tr>
-<td width="33%"><code>brew cask install fastlane</code></td>
-<td width="33%"><a href="https://download.fastlane.tools/fastlane.zip">Download the zip file</a>. Then double click on the <code>install</code> script (or run it in a terminal window).</td>
-<td width="33%"><code>sudo gem install fastlane -NV</code></td>
-</tr>
-</table>
+| Method                     | OS support                              | Description                                                                                                                           |
+|----------------------------|-----------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
+| [Homebrew](http://brew.sh) | macOS                                   | `brew cask install fastlane`                                                                                                          |
+| Installer Script           | macOS                                   | [Download the zip file](https://download.fastlane.tools). Then double click on the `install` script (or run it in a terminal window). |
+| RubyGems                   | macOS or Linux with Ruby 2.0.0 or above | `sudo gem install fastlane -NV`                                                                                                       |
+
 # Available Actions
-### register
+## Android
+### android build
 ```
-fastlane register
+fastlane android build
 ```
-Adds any unregistered devices to the provisioning profile
-### bump
+Makes a build
+### android check_build
 ```
-fastlane bump
+fastlane android check_build
 ```
-Bump the version string to a new version
+Checks that the app builds
+### android beta
+```
+fastlane android beta
+```
+Submit a new beta build to Google Play
+### android nightly
+```
+fastlane android nightly
+```
+Submit a new nightly build to Google Play
+### android sourcemap
+```
+fastlane android sourcemap
+```
+Bundle an Android sourcemap
+### android ci-run
+```
+fastlane android ci-run
+```
+Run the appropriate action on CI
+### android matchesque
+```
+fastlane android matchesque
+```
+extract the android keys from the match repo
 
 ----
 
@@ -52,65 +67,41 @@ Runs all the tests
 fastlane ios screenshot
 ```
 Take screenshots
-### ios rogue
+### ios check_build
 ```
-fastlane ios rogue
+fastlane ios check_build
 ```
-Go rogue
+Checks that the app can be built
 ### ios build
 ```
 fastlane ios build
 ```
-Provisions the profiles; bumps the build number; builds the app
+Builds and exports the app
 ### ios beta
 ```
 fastlane ios beta
 ```
-Submit a new Beta Build to HockeyApp
-### ios auto_beta
+Submit a new Beta Build to Testflight
+### ios nightly
 ```
-fastlane ios auto_beta
+fastlane ios nightly
 ```
-Make a beta build if there have been new commits since the last beta
-### ios ci_keychains
+Submit a new nightly Beta Build to Testflight
+### ios sourcemap
 ```
-fastlane ios ci_keychains
+fastlane ios sourcemap
 ```
-Do CI-system keychain setup
-### ios ci_run
+Bundle an iOS sourcemap
+### ios refresh_dsyms
 ```
-fastlane ios ci_run
+fastlane ios refresh_dsyms
+```
+Upload dYSM symbols to Bugsnag from Apple
+### ios ci-run
+```
+fastlane ios ci-run
 ```
 Run iOS builds or tests, as appropriate
-### ios update_match
-```
-fastlane ios update_match
-```
-In case match needs to be updated - probably never needs to be run
-
-----
-
-## Android
-### android build
-```
-fastlane android build
-```
-Makes a build
-### android beta
-```
-fastlane android beta
-```
-Submit a new Beta Build to HockeyApp
-### android auto_beta
-```
-fastlane android auto_beta
-```
-Make a beta build if there have been new commits since the last beta
-### android ci_run
-```
-fastlane android ci_run
-```
-Run the appropriate action on CI
 
 ----
 

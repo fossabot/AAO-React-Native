@@ -1,88 +1,100 @@
 // @flow
-/**
- * All About Olaf
- * Menus page
- */
 
-import React from 'react'
+import * as React from 'react'
+import {TabNavigator} from '../components/tabbed-view'
+import {TabBarIcon} from '../components/tabbar-icon'
 
-import type {TopLevelViewPropsType} from '../types'
-import TabbedView from '../components/tabbed-view'
 import {BonAppHostedMenu} from './menu-bonapp'
 import {GitHubHostedMenu} from './menu-github'
-import {CarletonMenuPicker} from './carleton-list'
+import {CarletonCafeIndex} from './carleton-menus'
 // import {BonAppPickerView} from './dev-bonapp-picker'
 
-export function MenusView({navigator, route}: TopLevelViewPropsType) {
-  return (
-    <TabbedView
-      tabs={[
-        {
-          id: 'StavHallMenuView',
-          title: 'Stav Hall',
-          icon: 'nutrition',
-          component: () => (
-            <BonAppHostedMenu
-              navigator={navigator}
-              route={route}
-              name="stav"
-              cafeId="261"
-              loadingMessage={[
-                'Hunting Ferndale Turkey…',
-                'Tracking wild vegan burgers…',
-                '"Cooking" some lutefisk…',
-              ]}
-            />
-          ),
-        },
-        {
-          id: 'TheCageMenuView',
-          title: 'The Cage',
-          icon: 'cafe',
-          component: () => (
-            <BonAppHostedMenu
-              navigator={navigator}
-              route={route}
-              name="cage"
-              cafeId="262"
-              ignoreProvidedMenus={true}
-              loadingMessage={[
-                'Checking for vegan cookies…',
-                'Serving up some shakes…',
-              ]}
-            />
-          ),
-        },
-        {
-          id: 'ThePauseMenuView',
-          title: 'The Pause',
-          icon: 'paw',
-          component: () => (
-            <GitHubHostedMenu
-              navigator={navigator}
-              route={route}
-              name="pause"
-              loadingMessage={['Mixing up a shake…', 'Spinning up pizzas…']}
-            />
-          ),
-        },
-        {
-          id: 'CarletonMenuListView',
-          title: 'Carleton',
-          icon: 'menu',
-          component: () => (
-            <CarletonMenuPicker navigator={navigator} route={route} />
-          ),
-        },
-        // {
-        //   id: 'BonAppDevToolView',
-        //   title: 'BonApp',
-        //   icon: 'ionic',
-        //   component: () => (
-        //     <BonAppPickerView navigator={navigator} route={route} />
-        //   ),
-        // },
-      ]}
-    />
-  )
-}
+export {
+  CarletonBurtonMenuScreen,
+  CarletonLDCMenuScreen,
+  CarletonWeitzMenuScreen,
+  CarletonSaylesMenuScreen,
+} from './carleton-menus'
+
+export const MenusView = TabNavigator(
+  {
+    StavHallMenuView: {
+      screen: ({navigation}) => (
+        <BonAppHostedMenu
+          cafeId="261"
+          loadingMessage={[
+            'Hunting Ferndale Turkey…',
+            'Tracking wild vegan burgers…',
+            '"Cooking" some lutefisk…',
+            'Finding more mugs…',
+            'Waiting for omlets…',
+            'Putting out more cookies…',
+          ]}
+          name="Stav Hall"
+          navigation={navigation}
+        />
+      ),
+      navigationOptions: {
+        tabBarLabel: 'Stav Hall',
+        tabBarIcon: TabBarIcon('nutrition'),
+      },
+    },
+
+    TheCageMenuView: {
+      screen: ({navigation}) => (
+        <BonAppHostedMenu
+          cafeId="262"
+          ignoreProvidedMenus={true}
+          loadingMessage={[
+            'Checking for vegan cookies…',
+            'Serving up some shakes…',
+            'Waiting for menu screens to change…',
+            'Frying chicken…',
+            'Brewing coffee…',
+          ]}
+          name="The Cage"
+          navigation={navigation}
+        />
+      ),
+      navigationOptions: {
+        tabBarLabel: 'The Cage',
+        tabBarIcon: TabBarIcon('cafe'),
+      },
+    },
+
+    ThePauseMenuView: {
+      screen: ({navigation}) => (
+        <GitHubHostedMenu
+          loadingMessage={[
+            'Mixing up a shake…',
+            'Spinning up pizzas…',
+            'Turning up the music…',
+            'Putting ice cream on the cookies…',
+            'Fixing the oven…',
+          ]}
+          name="The Pause"
+          navigation={navigation}
+        />
+      ),
+      navigationOptions: {
+        tabBarLabel: 'The Pause',
+        tabBarIcon: TabBarIcon('paw'),
+      },
+    },
+
+    CarletonMenuListView: {
+      screen: CarletonCafeIndex,
+      navigationOptions: {
+        tabBarLabel: 'Carleton',
+        tabBarIcon: TabBarIcon('menu'),
+      },
+    },
+
+    // BonAppDevToolView: {screen: BonAppPickerView},
+  },
+  {
+    navigationOptions: {
+      title: 'Menus',
+    },
+  },
+)

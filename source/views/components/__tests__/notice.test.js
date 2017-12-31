@@ -1,36 +1,29 @@
 /* eslint-env jest */
 // @flow
 
-import React from 'react'
-import {shallow} from 'enzyme'
+import 'react-native'
+import * as React from 'react'
+import ReactShallowRenderer from 'react-test-renderer/shallow'
 
 import {NoticeView} from '../notice'
 
-test('renders', () => {
-  const tree = shallow(<NoticeView text="A Message" />)
+const shallow = component => {
+  const r = new ReactShallowRenderer()
+  r.render(component)
+  return r.getRenderOutput()
+}
 
+test('renders the given text', () => {
+  const tree = shallow(<NoticeView text="A Label I Am" />)
   expect(tree).toMatchSnapshot()
 })
 
-test('renders the given text', () => {
-  const label = 'A Label I Am'
-
-  const tree = shallow(<NoticeView text={label} />)
-
-  expect(tree.find('Text').prop('children')).toBe(label)
-})
-
-test('renders the given text', () => {
-  const button = 'Button'
-
-  const tree = shallow(<NoticeView text="Label" buttonText={button} />)
-
-  expect(tree.find('Button').length).toBe(1)
-  expect(tree.find('Button').prop('title')).toBe(button)
+test('renders a button, if given', () => {
+  const tree = shallow(<NoticeView buttonText="Button" text="Label" />)
+  expect(tree).toMatchSnapshot()
 })
 
 test('shows an ActivityIndicator if given [spinner]', () => {
-  const tree = shallow(<NoticeView text="Label" spinner={true} />)
-
-  expect(tree.find('ActivityIndicator').length).toBe(1)
+  const tree = shallow(<NoticeView spinner={true} text="Label" />)
+  expect(tree).toMatchSnapshot()
 })

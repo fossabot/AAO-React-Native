@@ -17,4 +17,6 @@ breakSchedule:
   interim: []
   spring: []
   easter: []
-  summer: []
+  summer:
+    - title: Hours
+      hours: [] # closed for the summer

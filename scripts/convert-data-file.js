@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 const fs = require('fs')
 const yaml = require('js-yaml')
-const marked = require('marked')
 
 // run cli
 if (process.mainModule === module) {
@@ -9,7 +8,9 @@ if (process.mainModule === module) {
   const fromFile = args[0]
   const toFile = args[1] || '-'
   if (!fromFile || fromFile === '-h' || fromFile === '--help') {
-    console.error('usage: node convert-data-file.js <from-file.{md,yaml}> [to-file]')
+    console.error(
+      'usage: node convert-data-file.js <from-file.{md,yaml,css}> [to-file]',
+    )
     process.exit(1)
   }
   convertDataFile({fromFile, toFile})
@@ -17,7 +18,7 @@ if (process.mainModule === module) {
 
 // exported module
 module.exports = convertDataFile
-function convertDataFile({fromFile, toFile}) {
+function convertDataFile({fromFile, toFile, toFileType = 'json'}) {
   const contents = fs.readFileSync(fromFile, 'utf-8')
   let output = contents
 
@@ -29,22 +30,35 @@ function convertDataFile({fromFile, toFile}) {
     case 'yaml':
       output = processYaml(contents)
       break
+    case 'css':
+      if (toFileType === 'css') {
+        output = contents
+      } else {
+        output = processCSS(contents)
+      }
+      break
     default:
-      throw new Error(`unexpected filetype "${fileType}; expected "md" or "yaml"`)
+      throw new Error(
+        `unexpected filetype "${fileType}; expected "md", "yaml", or "css"`,
+      )
   }
 
   output = output + '\n'
 
-  const outStream = toFile === '-' ? process.stdout : fs.createWriteStream(toFile)
+  const outStream =
+    toFile === '-' ? process.stdout : fs.createWriteStream(toFile)
   outStream.write(output)
 }
 
 function processYaml(fileContents) {
   let loaded = yaml.safeLoad(fileContents)
-  return JSON.stringify({data: loaded}, null, 2)
+  return JSON.stringify({data: loaded})
 }
 
 function processMarkdown(fileContents) {
-  let loaded = marked(fileContents, {mangle: false})
-  return JSON.stringify({text: loaded}, null, 2)
+  return JSON.stringify({text: fileContents})
+}
+
+function processCSS(fileContents) {
+  return JSON.stringify({css: fileContents})
 }

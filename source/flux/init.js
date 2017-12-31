@@ -7,63 +7,28 @@ import {NetInfo} from 'react-native'
 import {loadLoginCredentials} from '../lib/login'
 import {updateOnlineStatus} from './parts/app'
 import {loadHomescreenOrder} from './parts/homescreen'
+import {loadFavoriteBuildings} from './parts/buildings'
 import {
   setLoginCredentials,
-  logInViaToken,
   validateLoginCredentials,
   loadFeedbackStatus,
+  loadAcknowledgement,
 } from './parts/settings'
-import {updateBalances, updateCourses} from './parts/sis'
-import {FINANCIALS_URL} from '../lib/financials/urls'
+import {updateBalances} from './parts/sis'
 
-function homescreen(store) {
-  store.dispatch(loadHomescreenOrder())
-}
+async function loginCredentials(store) {
+  const {username, password} = await loadLoginCredentials()
 
-function feedbackOptOutStatus(store) {
-  store.dispatch(loadFeedbackStatus())
-}
-
-function sisLoginCredentials(store) {
-  loadLoginCredentials().then(({username, password} = {}) => {
-    if (!username || !password) return
-
-    let action = setLoginCredentials(username, password)
-    store.dispatch(action)
-  })
-}
-
-async function checkSisLogin(store) {
-  const online = await NetInfo.isConnected.fetch()
-  if (!online) {
+  if (!username || !password) {
     return
   }
 
-  // check if we can log in to the SIS
-  const r = await fetch(FINANCIALS_URL)
-  if (r.url !== FINANCIALS_URL) {
-    return
-  }
-  const action = logInViaToken(true)
-  store.dispatch(action)
+  store.dispatch(setLoginCredentials(username, password))
 }
 
 async function validateOlafCredentials(store) {
-  const online = await NetInfo.isConnected.fetch()
-  if (!online) {
-    return
-  }
-
   const {username, password} = await loadLoginCredentials()
-  const action = validateLoginCredentials(username, password)
-  store.dispatch(action)
-}
-
-function loadBalances(store) {
-  store.dispatch(updateBalances(false))
-}
-function loadCourses(store) {
-  store.dispatch(updateCourses(false))
+  store.dispatch(validateLoginCredentials(username, password))
 }
 
 function netInfoIsConnected(store) {
@@ -71,17 +36,32 @@ function netInfoIsConnected(store) {
     store.dispatch(updateOnlineStatus(isConnected))
   }
 
-  NetInfo.isConnected.addEventListener('change', updateConnectionStatus)
-  NetInfo.isConnected.fetch().then(updateConnectionStatus)
+  NetInfo.isConnected.addEventListener(
+    'connectionChange',
+    updateConnectionStatus,
+  )
+  return NetInfo.isConnected.fetch().then(updateConnectionStatus)
 }
 
-export function init(store: {dispatch: any}) {
-  homescreen(store)
-  feedbackOptOutStatus(store)
-  sisLoginCredentials(store)
-  checkSisLogin(store)
-  validateOlafCredentials(store)
-  loadBalances(store)
-  loadCourses(store)
-  netInfoIsConnected(store)
+export async function init(store: {dispatch: any => any}) {
+  // this function runs in two parts: the things that don't care about
+  // network, and those that do.
+
+  // kick off the parts that don't care about network in parallel
+  await Promise.all([
+    store.dispatch(loadHomescreenOrder()),
+    store.dispatch(loadFeedbackStatus()),
+    store.dispatch(loadAcknowledgement()),
+    store.dispatch(loadFavoriteBuildings()),
+    loginCredentials(store),
+  ])
+
+  // wait for our first connection check to happen
+  await netInfoIsConnected(store)
+
+  // then go do the network stuff in parallel
+  await Promise.all([
+    validateOlafCredentials(store),
+    store.dispatch(updateBalances(false)),
+  ])
 }

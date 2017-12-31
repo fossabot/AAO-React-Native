@@ -1,7 +1,9 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import * as c from '../../../components/colors'
 import {View, StyleSheet, Platform} from 'react-native'
+import type {BusStopStatusEnum} from '../lib'
+
 const isAndroid = Platform.OS === 'android'
 
 const styles = StyleSheet.create({
@@ -45,46 +47,52 @@ const styles = StyleSheet.create({
   },
 })
 
-export const ProgressChunk = ({
-  afterStop,
-  atStop,
-  barColor,
-  beforeStop,
-  currentStopColor,
-  skippingStop,
-  isFirstChunk,
-  isLastChunk,
-}: {
-  afterStop: boolean,
-  atStop: boolean,
-  barColor: string,
-  beforeStop: boolean,
-  currentStopColor: string,
-  skippingStop: boolean,
-  isFirstChunk: boolean,
-  isLastChunk: boolean,
-}) => {
-  // To draw the bar, we draw a chunk of the bar, then we draw the dot, then
-  // we draw the last chunk of the bar.
-  const startBarColor = isAndroid && isFirstChunk ? c.transparent : barColor
-  const endBarColor = isAndroid && isLastChunk ? c.transparent : barColor
+type Props = {|
+  +barColor: string,
+  +currentStopColor: string,
+  +isFirstChunk: boolean,
+  +isLastChunk: boolean,
+  +stopStatus: BusStopStatusEnum,
+|}
 
-  return (
-    <View style={styles.barContainer}>
-      <View style={[styles.bar, {backgroundColor: startBarColor}]} />
-      <View
-        style={[
-          styles.dot,
-          afterStop && [
-            styles.passedStop,
-            {borderColor: barColor, backgroundColor: barColor},
-          ],
-          beforeStop && [styles.beforeStop, {borderColor: barColor}],
-          atStop && [styles.atStop, {borderColor: currentStopColor}],
-          skippingStop && styles.skippingStop,
-        ]}
-      />
-      <View style={[styles.bar, {backgroundColor: endBarColor}]} />
-    </View>
-  )
+export class ProgressChunk extends React.PureComponent<Props, void> {
+  render() {
+    const {
+      stopStatus,
+      barColor,
+      currentStopColor,
+      isFirstChunk,
+      isLastChunk,
+    } = this.props
+
+    // To draw the bar, we draw a chunk of the bar, then we draw the dot, then
+    // we draw the last chunk of the bar.
+    const startBarColor = isAndroid && isFirstChunk ? c.transparent : barColor
+    const endBarColor = isAndroid && isLastChunk ? c.transparent : barColor
+
+    return (
+      <View style={styles.barContainer}>
+        <View style={[styles.bar, {backgroundColor: startBarColor}]} />
+        <View
+          style={[
+            styles.dot,
+            stopStatus === 'after' && [
+              styles.passedStop,
+              {borderColor: barColor, backgroundColor: barColor},
+            ],
+            stopStatus === 'before' && [
+              styles.beforeStop,
+              {borderColor: barColor},
+            ],
+            stopStatus === 'at' && [
+              styles.atStop,
+              {borderColor: currentStopColor},
+            ],
+            stopStatus === 'skip' && styles.skippingStop,
+          ]}
+        />
+        <View style={[styles.bar, {backgroundColor: endBarColor}]} />
+      </View>
+    )
+  }
 }

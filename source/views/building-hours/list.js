@@ -1,13 +1,8 @@
 // @flow
-/**
- * All About Olaf
- * Building Hours list page
- */
 
-import React from 'react'
-import {StyleSheet, Platform} from 'react-native'
+import * as React from 'react'
+import {StyleSheet, SectionList} from 'react-native'
 import {BuildingRow} from './row'
-import SimpleListView from '../components/listview'
 import {tracker} from '../../analytics'
 
 import type momentT from 'moment'
@@ -25,56 +20,47 @@ const styles = StyleSheet.create({
   },
 })
 
-type BuildingHoursPropsType = TopLevelViewPropsType & {
+type Props = TopLevelViewPropsType & {
   now: momentT,
   loading: boolean,
   onRefresh: () => any,
-  buildings: {[key: string]: BuildingType[]},
+  buildings: Array<{title: string, data: BuildingType[]}>,
 }
 
-export class BuildingHoursList extends React.Component {
-  props: BuildingHoursPropsType
-
+export class BuildingHoursList extends React.PureComponent<Props> {
   onPressRow = (data: BuildingType) => {
     tracker.trackEvent('building-hours', data.name)
-    this.props.navigator.push({
-      id: 'BuildingHoursDetailView',
-      index: this.props.route.index + 1,
-      title: data.name,
-      backButtonTitle: 'Hours',
-      props: data,
-      sceneConfig: Platform.OS === 'android' ? 'fromBottom' : undefined,
-    })
+    this.props.navigation.navigate('BuildingHoursDetailView', {building: data})
   }
 
-  renderSectionHeader = (data: any, id: string) => {
-    return <ListSectionHeader style={styles.rowSectionHeader} title={id} />
-  }
+  keyExtractor = (item: BuildingType) => item.name
 
-  renderSeparator = (sectionID: any, rowID: any) => {
-    return <ListSeparator key={`${sectionID}-${rowID}`} />
-  }
+  renderSectionHeader = ({section: {title}}: any) => (
+    <ListSectionHeader title={title} />
+  )
+
+  renderItem = ({item}: {item: BuildingType}) => (
+    <BuildingRow
+      info={item}
+      name={item.name}
+      now={this.props.now}
+      onPress={this.onPressRow}
+    />
+  )
 
   render() {
     return (
-      <SimpleListView
-        data={this.props.buildings}
-        renderSectionHeader={this.renderSectionHeader}
-        renderSeparator={this.renderSeparator}
+      <SectionList
+        ItemSeparatorComponent={ListSeparator}
         contentContainerStyle={styles.container}
-        removeClippedSubviews={false} // remove after https://github.com/facebook/react-native/issues/8607#issuecomment-241715202
-        refreshing={this.props.loading}
+        extraData={this.props}
+        keyExtractor={this.keyExtractor}
         onRefresh={this.props.onRefresh}
-      >
-        {(data: BuildingType) => (
-          <BuildingRow
-            name={data.name}
-            info={data}
-            now={this.props.now}
-            onPress={() => this.onPressRow(data)}
-          />
-        )}
-      </SimpleListView>
+        refreshing={this.props.loading}
+        renderItem={this.renderItem}
+        renderSectionHeader={this.renderSectionHeader}
+        sections={(this.props.buildings: any)}
+      />
     )
   }
 }

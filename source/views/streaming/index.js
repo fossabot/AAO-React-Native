@@ -1,40 +1,24 @@
 // @flow
-/**
- * All About Olaf
- * Media page
- */
 
-import React from 'react'
+import {TabNavigator} from '../components/tabbed-view'
 
-import TabbedView from '../components/tabbed-view'
-
-import KSTOView from './radio'
+import {KSTOView} from './radio'
 // import WeeklyMovieView from './movie'
-import WebcamsView from './webcams'
+import {WebcamsView} from './webcams'
+import {StreamListView} from './streams'
 
-export default function MediaPage() {
-  return (
-    <TabbedView
-      tabs={[
-        {
-          id: 'KSTORadioView',
-          title: 'KSTO',
-          icon: 'radio',
-          component: () => <KSTOView />,
-        },
-        // {
-        //   id: 'WeeklyMovieView',
-        //   title: 'Weekly Movie',
-        //   icon: 'film',
-        //   component: () => <WeeklyMovieView />,
-        // },
-        {
-          id: 'LiveWebcamsView',
-          title: 'Webcams',
-          icon: 'videocam',
-          component: () => <WebcamsView />,
-        },
-      ]}
-    />
-  )
-}
+export {KSTOScheduleView} from './radio'
+
+export default TabNavigator(
+  {
+    StreamingView: {screen: StreamListView},
+    LiveWebcamsView: {screen: WebcamsView},
+    KSTORadioView: {screen: KSTOView},
+    // WeeklyMovieView: {screen: WeeklyMovieView},
+  },
+  {
+    navigationOptions: {
+      title: 'Streaming Media',
+    },
+  },
+)

@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {StyleSheet, View, Text, Platform} from 'react-native'
 import type momentT from 'moment'
 import type {FilterType} from '../../components/filter'
@@ -27,7 +27,9 @@ export function FilterMenuToolbar({date, title, filters, onPress}: PropsType) {
   const appliedFilterCount = filters
     .filter(f => f.type !== 'picker')
     .filter(f => f.enabled).length
+
   const isFiltered = appliedFilterCount > 0
+  const filterWord = appliedFilterCount === 1 ? 'Filter' : 'Filters'
 
   return (
     <Toolbar onPress={onPress}>
@@ -39,13 +41,11 @@ export function FilterMenuToolbar({date, title, filters, onPress}: PropsType) {
       </View>
 
       <ToolbarButton
+        iconName={Platform.OS === 'ios' ? 'ios-funnel' : 'md-funnel'}
         isActive={isFiltered}
         title={
-          isFiltered
-            ? `${appliedFilterCount} ${appliedFilterCount === 1 ? 'Filter' : 'Filters'}`
-            : 'No Filters'
+          isFiltered ? `${appliedFilterCount} ${filterWord}` : 'No Filters'
         }
-        iconName={Platform.OS === 'ios' ? 'ios-funnel' : 'md-funnel'}
       />
     </Toolbar>
   )

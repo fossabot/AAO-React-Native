@@ -1,20 +1,15 @@
 // @flow
-/**
- * All About Olaf
- * Building Hours list element
- */
-import React from 'react'
+
+import * as React from 'react'
 import {View, Text, StyleSheet} from 'react-native'
 import {Badge} from '../components/badge'
+import isEqual from 'lodash/isEqual'
 import type momentT from 'moment'
 import type {BuildingType} from './types'
 import * as c from '../components/colors'
-import {Row, Column} from '../components/layout'
+import {Row} from '../components/layout'
 import {ListRow, Detail, Title} from '../components/list'
-import {
-  getDetailedBuildingStatus,
-  getShortBuildingStatus,
-} from './building-hours-helpers'
+import {getDetailedBuildingStatus, getShortBuildingStatus} from './lib'
 
 const styles = StyleSheet.create({
   title: {
@@ -42,46 +37,115 @@ const styles = StyleSheet.create({
   },
 })
 
-type PropsType = {
+const BG_COLORS = {
+  Open: c.moneyGreen,
+  Closed: c.salmon,
+}
+
+const FG_COLORS = {
+  Open: c.hollyGreen,
+  Closed: c.brickRed,
+}
+
+type Props = {
   info: BuildingType,
   name: string,
   now: momentT,
-  onPress: () => any,
+  onPress: BuildingType => any,
 }
 
-export function BuildingRow({info, name, now, onPress}: PropsType) {
-  let bgColors = {
-    Open: c.moneyGreen,
-    Closed: c.salmon,
+type State = {
+  firstUpdate: boolean,
+  openStatus: string,
+  hours: Array<any>,
+  accentBg: string,
+  accentText: string,
+}
+
+export class BuildingRow extends React.Component<Props, State> {
+  state = {
+    openStatus: 'Unknown',
+    hours: [],
+    firstUpdate: true,
+
+    // when changing these, make sure to change the fallbacks in setStateFromProps
+    accentBg: c.goldenrod,
+    accentText: 'rgb(130, 82, 45)',
   }
-  let foregroundColors = {
-    Open: c.hollyGreen,
-    Closed: c.brickRed,
+
+  componentWillMount() {
+    this.setStateFromProps(this.props)
   }
 
-  const openStatus = getShortBuildingStatus(info, now)
-  const hours = getDetailedBuildingStatus(info, now)
+  componentWillReceiveProps(nextProps: Props) {
+    this.setStateFromProps(nextProps)
+  }
 
-  const accent = bgColors[openStatus] || c.goldenrod
-  const textaccent = foregroundColors[openStatus] || 'rgb(130, 82, 45)'
+  shouldComponentUpdate(nextProps: Props, nextState: State) {
+    // We won't check the time in shouldComponentUpdate, because we really
+    // only care if the building status has changed, and this is called after
+    // setStateFromProps runs.
+    return (
+      this.props.name !== nextProps.name ||
+      this.props.info !== nextProps.info ||
+      this.props.onPress !== nextProps.onPress ||
+      this.state.openStatus !== nextState.openStatus ||
+      !isEqual(this.state.hours, nextState.hours)
+    )
+  }
 
-  return (
-    <ListRow onPress={onPress} arrowPosition="center" direction="column">
-      <Column>
+  setStateFromProps = (nextProps: Props) => {
+    // we check the time in setStateFromProps, because shouldComponentUpdate
+    // runs _after_ setStateFromProps.
+    if (
+      this.props.now.isSame(nextProps.now, 'minute') &&
+      !this.state.firstUpdate
+    ) {
+      return
+    }
+
+    const {info, now} = nextProps
+
+    const openStatus = getShortBuildingStatus(info, now)
+    const hours = getDetailedBuildingStatus(info, now)
+
+    // when changing these, make sure to change the initial values in `state`
+    const accentBg = BG_COLORS[openStatus] || c.goldenrod
+    const accentText = FG_COLORS[openStatus] || 'rgb(130, 82, 45)'
+
+    this.setState(() => ({
+      openStatus,
+      hours,
+      accentBg,
+      accentText,
+      firstUpdate: false,
+    }))
+  }
+
+  onPress = () => {
+    this.props.onPress(this.props.info)
+  }
+
+  render() {
+    const {info, name} = this.props
+    const {openStatus, hours, accentBg, accentText} = this.state
+
+    return (
+      <ListRow arrowPosition="center" onPress={this.onPress}>
         <Row style={styles.title}>
           <Title lines={1} style={styles.titleText}>
             <Text>{name}</Text>
             {info.abbreviation ? <Text> ({info.abbreviation})</Text> : null}
-            {info.subtitle
-              ? <Text style={styles.subtitleText}> {info.subtitle}</Text>
-              : null}
+            {info.subtitle ? (
+              <Text style={styles.subtitleText}> {info.subtitle}</Text>
+            ) : null}
           </Title>
 
           <Badge
-            text={openStatus}
-            accentColor={accent}
-            textColor={textaccent}
+            accentColor={accentBg}
             style={styles.accessoryBadge}
+            text={openStatus}
+            textColor={accentText}
           />
         </Row>
 
@@ -96,24 +160,28 @@ export function BuildingRow({info, name, now, onPress}: PropsType) {
             </Detail>
           ))}
         </View>
-      </Column>
-    </ListRow>
-  )
+      </ListRow>
+    )
+  }
 }
 
 const BuildingTimeSlot = ({
   label,
   status,
   highlight,
-}: {label: ?string, status: string, highlight: boolean}) => {
+}: {
+  label: ?string,
+  status: string,
+  highlight: boolean,
+}) => {
   // we don't want to show the 'Hours' label, since almost every row has it
-  const showLabel = label !== 'Hours'
+  const showLabel = label && label !== 'Hours'
 
   return (
     <Text>
-      {showLabel
-        ? <Text style={highlight && styles.bold}>{label}: </Text>
-        : null}
+      {showLabel ? (
+        <Text style={highlight && styles.bold}>{label}: </Text>
+      ) : null}
       <Text style={highlight && styles.bold}>{status}</Text>
     </Text>
   )

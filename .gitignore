@@ -52,14 +52,27 @@ coverage
 # fastlane specific
 fastlane/report.xml
 
-# deliver temporary files
+# snapshot's generated screenshots
 fastlane/Preview.html
-
-# snapshot generated screenshots
 fastlane/screenshots
 
-# scan temporary files
+# scan's temporary files
 fastlane/test_output
 
 # deploy key
 scripts/travisci_deploy_key
+fastlane/play-private-key.json
+
+# generated files
+docs/
+
+# android keystores
+android/app/signing.properties
+*.keystore
+
+# vim temp files
+*.swp
+
+# rubygems bundle
+/vendor/bundle/
+/.bundle/
