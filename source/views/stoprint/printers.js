@@ -97,14 +97,18 @@ class PrintReleaseView extends React.PureComponent<Props> {
       groupBy(
         this.props.printers,
         j =>
-          !j.location ? 'Unknown Building' :
-          /^[A-Z]+ \d+/.test(j.location)
-            ? j.location.split(/\s+/)[0]
-            : j.location,
+          !j.location
+            ? 'Unknown Building'
+            : /^[A-Z]+ \d+/.test(j.location)
+              ? j.location.split(/\s+/)[0]
+              : j.location,
       ),
     ).map(([title, data]) => ({title, data}))
 
-    groupedByBuilding.sort((a, b) => (a.title === '' && b.title !== '') ? 1 : a.title.localeCompare(b.title))
+    groupedByBuilding.sort(
+      (a, b) =>
+        a.title === '' && b.title !== '' ? 1 : a.title.localeCompare(b.title),
+    )
 
     return (
       <SectionList
