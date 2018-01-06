@@ -7,11 +7,7 @@ import {connect} from 'react-redux'
 import {type ReduxState} from '../../flux'
 import {ListEmpty} from '../components/list'
 import {updatePrinters, updatePrintJobs} from '../../flux/parts/stoprint'
-import type {
-  PrintJob,
-  HeldJob,
-  Printer,
-} from './types'
+import type {PrintJob, Printer} from './types'
 import {
   ListRow,
   ListSeparator,
@@ -25,10 +21,7 @@ import groupBy from 'lodash/groupBy'
 import delay from 'delay'
 
 const styles = StyleSheet.create({
-  list: {
-    paddingTop: 5,
-    marginHorizontal: 5,
-  },
+  list: {},
 })
 
 type ReactProps = TopLevelViewPropsType
@@ -82,7 +75,12 @@ class PrintReleaseView extends React.PureComponent<Props> {
   renderItem = ({item}: {item: PrintJob}) => (
     <ListRow>
       <Title>{item.documentName}</Title>
+      <Detail>{item.usageCostFormatted}</Detail>
     </ListRow>
+  )
+
+  renderSectionHeader = ({section: {title}}: any) => (
+    <ListSectionHeader title={title} />
   )
 
   render() {
@@ -95,7 +93,7 @@ class PrintReleaseView extends React.PureComponent<Props> {
       )
     }
 
-    const jobs = toPairs(groupBy(this.props.printers, j => j.printerName)).map(
+    const jobs = toPairs(groupBy(this.props.jobs, j => j.printerName)).map(
       ([title, data]) => ({title, data}),
     )
 
@@ -119,7 +117,9 @@ function mapStateToProps(state: ReduxState): ReduxStateProps {
     printers: state.stoprint ? state.stoprint.printers : [],
     jobs: state.stoprint ? state.stoprint.jobs : [],
     error: state.stoprint ? state.stoprint.error : null,
-    loading: state.stoprint ? state.stoprint.loadingJobs || state.stoprint.loadingPrinters : false,
+    loading: state.stoprint
+      ? state.stoprint.loadingJobs || state.stoprint.loadingPrinters
+      : false,
     loginState: state.settings ? state.settings.loginState : 'logged-out',
   }
 }
