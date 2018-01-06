@@ -155,10 +155,10 @@ export function stoprint(state: State = initialState, action: Action) {
       }
 
     case UPDATE_ALL_PRINTERS_START:
-      return {...state, loadingJobs: true, error: null}
+      return {...state, loadingPrinters: true, error: null}
 
     case UPDATE_ALL_PRINTERS_FAILURE:
-      return {...state, loadingJobs: false, error: action.payload}
+      return {...state, loadingPrinters: false, error: action.payload}
 
     case UPDATE_ALL_PRINTERS_SUCCESS:
       return {
