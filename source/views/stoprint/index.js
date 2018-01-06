@@ -3,12 +3,13 @@
 import React from 'react'
 import {SectionList, StyleSheet, View, Text, Button} from 'react-native'
 import {connect} from 'react-redux'
+import {type ReduxState} from '../../flux'
 import {ListEmpty} from '../components/list'
 import {updatePrinters, updatePrintJobs} from '../../flux/parts/stoprint'
 import type {
-  PrintJobType,
-  HeldJobType,
-  PrinterType,
+  PrintJob,
+  HeldJob,
+  Printer,
 } from './types'
 import {
   ListRow,
@@ -32,11 +33,11 @@ const styles = StyleSheet.create({
 type ReactProps = TopLevelViewPropsType
 
 type ReduxStateProps = {
-  printers: Array<PrinterType>,
-  jobs: Array<HeldJobType>,
+  printers: Array<Printer>,
+  jobs: Array<PrintJob>,
   error: ?string,
   loading: boolean,
-  credentialsValid: boolean,
+  loginState: string,
 }
 
 type ReduxDispatchProps = {
@@ -55,7 +56,7 @@ class PrintReleaseView extends React.PureComponent<Props> {
     this.refresh()
   }
 
-  refresh = async () => {
+  refresh = async (): any => {
     let start = Date.now()
 
     await this.fetchData()
@@ -72,20 +73,20 @@ class PrintReleaseView extends React.PureComponent<Props> {
     return this.props.updatePrintJobs()
   }
 
-  keyExtractor = (item: PrintJobType) => item.printerName
+  keyExtractor = (item: PrintJob) => item.printerName
 
   openSettings = () => {
     this.props.navigation.navigate('SettingsView')
   }
 
-  renderItem = ({item}: {item: PrintJobType}) => (
+  renderItem = ({item}: {item: PrintJob}) => (
     <ListRow>
       <Title>{item.documentName}</Title>
     </ListRow>
   )
 
   render() {
-    if (!this.props.credentialsValid) {
+    if (this.props.loginState !== 'logged-in') {
       return (
         <View>
           <Text>You are not logged in.</Text>
@@ -113,13 +114,13 @@ class PrintReleaseView extends React.PureComponent<Props> {
   }
 }
 
-function mapStateToProps(state): ReduxStateProps {
+function mapStateToProps(state: ReduxState): ReduxStateProps {
   return {
-    printers: state.stoprint.printers,
-    jobs: state.stoprint.jobs,
-    error: state.stoprint.error,
+    printers: state.stoprint ? state.stoprint.printers : [],
+    jobs: state.stoprint ? state.stoprint.jobs : [],
+    error: state.stoprint ? state.stoprint.error : null,
     loading: state.stoprint ? state.stoprint.loadingJobs || state.stoprint.loadingPrinters : false,
-    credentialsValid: state.settings.credentials.valid,
+    loginState: state.settings ? state.settings.loginState : 'logged-out',
   }
 }
 

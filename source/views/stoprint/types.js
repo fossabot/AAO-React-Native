@@ -1,6 +1,6 @@
 // @flow
 
-export type PrintJobType = {
+export type PrintJob = {
   copies: number,
   documentName: string,
   deniedReasonFormatted?: string,
@@ -17,18 +17,18 @@ export type PrintJobType = {
   usageTimeFormatted: string,
 }
 
-export type HeldJobType = {
+export type HeldJob = {
   canRelease: boolean,
   client: string,
-} & PrintJobType
+} & PrintJob
 
 // https://papercut.stolaf.edu:9192/rpc/api/rest/internal/webclient/users/rives/jobs/status
-export type StatusResponseType = {
+export type StatusResponse = {
   hashCode: number,
-  jobs: Array<PrintJobType>,
+  jobs: Array<PrintJob>,
 }
 
-export type PrinterType = {
+export type Printer = {
   location: string,
   serverName: string,
   code: string,
@@ -37,16 +37,16 @@ export type PrinterType = {
 
 // https://papercut.stolaf.edu:9192/rpc/api/rest/internal/mobilerelease/api/recent-popular-printers
 // ?username=rives
-export type RecentPopularPrintersResponseType = {
-  popularPrinters: Array<PrinterType>,
-  recentPrinters: Array<PrinterType>,
+export type RecentPopularPrintersResponse = {
+  popularPrinters: Array<Printer>,
+  recentPrinters: Array<Printer>,
 }
 
 // https://papercut.stolaf.edu:9192/rpc/api/rest/internal/mobilerelease/api/all-printers
 // ?username=rives
-export type AllPrintersResponseType = Array<PrinterType>
+export type AllPrintersResponse = Array<Printer>
 
 // https://papercut.stolaf.edu:9192/rpc/api/rest/internal/mobilerelease/api/held-jobs/
 // ?username=rives
 // &printerName=printers\mfc-it
-export type HeldJobsResponseType = Array<HeldJobType>
+export type HeldJobsResponse = Array<HeldJob>
