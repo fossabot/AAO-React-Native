@@ -1,24 +1,34 @@
-/**
- * @flow
- * Reducer for stoprint data
- */
+// @flow
 
 import {loadLoginCredentials} from '../../lib/login'
 import buildFormData from '../../lib/formdata'
+import {type ReduxState} from '../index'
 
-export const UPDATE_NOTABLE_PRINTERS = 'stoprint/UPDATE_NOTABLE_PRINTERS'
-export const UPDATE_ALL_PRINTERS = 'stoprint/UPDATE_ALL_PRINTERS'
-export const UPDATE_PRINT_JOBS = 'stoprint/UPDATE_PRINT_JOBS'
-export const LOGIN_FAILED = 'stoprint/LOGIN_FAILED'
+type Dispatch<A: Action> = (action: A | Promise<A> | ThunkAction<A>) => any
+type GetState = () => ReduxState
+type ThunkAction<A: Action> = (dispatch: Dispatch<A>, getState: GetState) => any
+type Action =
+  | UpdateAllPrintersAction
+  | UpdatePrintJobsAction
+
+export const UPDATE_ALL_PRINTERS_START = 'stoprint/UPDATE_ALL_PRINTERS/START'
+export const UPDATE_PRINT_JOBS_START = 'stoprint/UPDATE_PRINT_JOBS/START'
+export const UPDATE_ALL_PRINTERS_FAILURE =
+  'stoprint/UPDATE_ALL_PRINTERS/FAILURE'
+export const UPDATE_PRINT_JOBS_FAILURE = 'stoprint/UPDATE_PRINT_JOBS/FAILURE'
+export const UPDATE_ALL_PRINTERS_SUCCESS =
+  'stoprint/UPDATE_ALL_PRINTERS/SUCCESS'
+export const UPDATE_PRINT_JOBS_SUCCESS = 'stoprint/UPDATE_PRINT_JOBS/SUCCESS'
+
+export type Printer = {}
+export type PrintJob = {}
 
 function _logIn(username, password) {
   const form = buildFormData({password: btoa(password)})
   // console.log(form)
   const url = `https://papercut.stolaf.edu/rpc/api/rest/internal/webclient/users/${username}/log-in`
   // console.log(url)
-  let req = fetch(url, {method: 'POST', body: form})
-  // console.log(req)
-  return req.then(r => r.json())
+  return fetchJson(url, {method: 'POST', body: form})
 }
 
 async function logIn(username, password): Promise<boolean> {
@@ -39,33 +49,65 @@ async function logIn(username, password): Promise<boolean> {
   return false
 }
 
-export function updatePrinters() {
+type UpdateAllPrintersStartAction = {
+  type: 'stoprint/UPDATE_ALL_PRINTERS/START',
+}
+
+type UpdateAllPrintersFailureAction = {
+  type: 'stoprint/UPDATE_ALL_PRINTERS/FAILURE',
+}
+
+type UpdateAllPrintersSuccessAction = {
+  type: 'stoprint/UPDATE_ALL_PRINTERS/SUCCESS',
+  payload: Array<Printer>,
+}
+
+type UpdateAllPrintersAction =
+  | UpdateAllPrintersSuccessAction
+  | UpdateAllPrintersFailureAction
+  | UpdateAllPrintersStartAction
+
+export function updatePrinters(): ThunkAction<UpdateAllPrintersAction> {
   return async (dispatch: any => any) => {
     const {username, password} = await loadLoginCredentials()
     if (!username || !password) {
       return false
     }
 
+    dispatch({type: UPDATE_ALL_PRINTERS_START})
     const success = await logIn(username, password)
     if (!success) {
-      return dispatch({
-        type: LOGIN_FAILED,
-        error: true,
-        payload: 'Login failed',
-      })
+      return dispatch({type: UPDATE_ALL_PRINTERS_FAILURE})
     }
 
     const url = `https://papercut.stolaf.edu:9192/rpc/api/rest/internal/mobilerelease/api/all-printers?username=${username}`
-    const printers = await fetch(url).then(r => r.json())
+    const printers = await fetchJson(url)
 
-    dispatch({
-      type: UPDATE_ALL_PRINTERS,
-      payload: printers,
-    })
+    dispatch({type: UPDATE_ALL_PRINTERS_SUCCESS, payload: printers})
   }
 }
 
-export function updatePrintJobs() {
+type UpdatePrintJobsStartAction = {
+  type: 'stoprint/UPDATE_PRINT_JOBS/START',
+  payload: Array<PrintJob>,
+}
+
+type UpdatePrintJobsFailureAction = {
+  type: 'stoprint/UPDATE_PRINT_JOBS/FAILURE',
+  payload: Array<PrintJob>,
+}
+
+type UpdatePrintJobsSuccessAction = {
+  type: 'stoprint/UPDATE_PRINT_JOBS/SUCCESS',
+  payload: Array<PrintJob>,
+}
+
+type UpdatePrintJobsAction =
+  | UpdatePrintJobsSuccessAction
+  | UpdatePrintJobsFailureAction
+  | UpdatePrintJobsStartAction
+
+export function updatePrintJobs(): ThunkAction<UpdatePrintJobsAction> {
   return async (dispatch: any => any) => {
     const {username, password} = await loadLoginCredentials()
     if (!username || !password) {
@@ -74,68 +116,59 @@ export function updatePrintJobs() {
     }
     // console.log('yes credentials')
 
+    dispatch({type: UPDATE_PRINT_JOBS_START})
+
     const success = await logIn(username, password)
     if (!success) {
       // console.log('not logged in')
-      return dispatch({
-        type: LOGIN_FAILED,
-        error: true,
-        payload: 'Login failed',
-      })
+      return dispatch({type: UPDATE_PRINT_JOBS_FAILURE})
     }
     // console.log('yes logged in')
 
     const url = `https://papercut.stolaf.edu:9192/rpc/api/rest/internal/webclient/users/${username}/jobs/status`
-    const {jobs} = await fetch(url).then(r => r.json())
+    const {jobs} = await fetchJson(url)
 
     // console.log('data', jobs)
 
-    dispatch({
-      type: UPDATE_PRINT_JOBS,
-      payload: jobs,
-    })
+    dispatch({type: UPDATE_PRINT_JOBS_SUCCESS, payload: jobs})
 
     // console.log('done')
   }
 }
 
-const initialPrintersState = {printers: [], error: null}
-function printers(state = initialPrintersState, action) {
-  const {type, payload, error} = action
+export type State = {|
+  jobs: Array<PrintJob>,
+  printers: Array<Printer>,
+  error: ?string,
+  loadingPrinters: boolean,
+  loadingJobs: boolean,
+|}
 
-  switch (type) {
-    case LOGIN_FAILED:
-      return {...state, error: payload}
+const initialState: State = {
+  error: null,
+  jobs: [],
+  printers: [],
+  loadingPrinters: false,
+  loadingJobs: false,
+}
 
-    case UPDATE_ALL_PRINTERS:
-      return {...state, printers: payload, error: null}
+export function stoprint(
+  state: State = initialState,
+  action: Action,
+) {
+  switch (action.type) {
+    case UPDATE_PRINT_JOBS_SUCCESS:
+      return {...state, jobs: action.payload, error: null, loadingJobs: false}
+
+    case UPDATE_ALL_PRINTERS_SUCCESS:
+      return {
+        ...state,
+        printers: action.payload,
+        error: null,
+        loadingPrinters: false,
+      }
 
     default:
       return state
-  }
-}
-
-const initialJobsState = {jobs: [], error: null}
-function jobs(state = initialJobsState, action) {
-  const {type, payload} = action
-
-  switch (type) {
-    case UPDATE_PRINT_JOBS:
-      return {...state, jobs: payload, error: null}
-
-    case LOGIN_FAILED:
-      return {...state, error: payload}
-
-    default:
-      return state
-  }
-}
-
-const initialStoprintPageState = {}
-export function stoprint(state: Object = initialStoprintPageState, action: Object) {
-  console.log(action)
-  return {
-    printers: printers(state.printers, action),
-    jobs: jobs(state.jobs, action),
   }
 }
