@@ -58,19 +58,18 @@ type UpdatePrintJobsAction =
 
 async function logIn(username, password): Promise<boolean> {
   if (!username || !password) {
-    // console.log('missing username or password')
     return false
   }
+
   try {
     const form = buildFormData({password: encode(password)})
     const url = `https://papercut.stolaf.edu/rpc/api/rest/internal/webclient/users/${username}/log-in`
     const result = await fetchJson(url, {method: 'POST', body: form})
-    // console.log('login result', result)
+
     if (result.success) {
       return true
     }
   } catch (err) {
-    // console.log('login threw an error')
     return false
   }
   return false
@@ -103,31 +102,23 @@ export function updatePrintJobs(): ThunkAction<UpdatePrintJobsAction> {
   return async dispatch => {
     const {username, password} = await loadLoginCredentials()
     if (!username || !password) {
-      // console.log('no credentials')
       return false
     }
-    // console.log('yes credentials')
 
     dispatch({type: UPDATE_PRINT_JOBS_START})
 
     const success = await logIn(username, password)
     if (!success) {
-      // console.log('not logged in')
       return dispatch({
         type: UPDATE_PRINT_JOBS_FAILURE,
         payload: 'There was a problem updating the print jobs',
       })
     }
-    // console.log('yes logged in')
 
     const url = `https://papercut.stolaf.edu:9192/rpc/api/rest/internal/webclient/users/${username}/jobs/status`
     const {jobs} = await fetchJson(url)
 
-    // console.log('data', jobs)
-
     dispatch({type: UPDATE_PRINT_JOBS_SUCCESS, payload: jobs})
-
-    // console.log('done')
   }
 }
 
