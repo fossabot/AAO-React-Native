@@ -7,7 +7,7 @@ import {TabBarIcon} from '../components/tabbar-icon'
 import {type ReduxState} from '../../flux'
 import {ListEmpty} from '../components/list'
 import {updatePrinters, updatePrintJobs} from '../../flux/parts/stoprint'
-import type {PrintJob, HeldJob, Printer} from './types'
+import type {PrintJob, Printer} from './types'
 import {
   ListRow,
   ListSeparator,
