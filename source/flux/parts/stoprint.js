@@ -2,6 +2,7 @@
 
 import {loadLoginCredentials} from '../../lib/login'
 import buildFormData from '../../lib/formdata'
+import querystring from 'querystring'
 import {encode} from 'base-64'
 import {type ReduxState} from '../index'
 import type {PrintJob, Printer} from '../../views/stoprint/types'
@@ -56,23 +57,23 @@ type UpdatePrintJobsAction =
   | UpdatePrintJobsFailureAction
   | UpdatePrintJobsStartAction
 
-async function logIn(username, password): Promise<boolean> {
-  if (!username || !password) {
-    return false
-  }
-
+async function logIn(username: string, password: string): Promise<'success' | string> {
   try {
-    const form = buildFormData({password: encode(password)})
-    const url = `https://papercut.stolaf.edu/rpc/api/rest/internal/webclient/users/${username}/log-in`
-    const result = await fetchJson(url, {method: 'POST', body: form})
+    const now = new Date().getTime()
+    const url = `https://papercut.stolaf.edu/rpc/api/rest/internal/webclient/users/${username}/log-in?nocache=${now}`
+    const headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    const body = querystring.stringify({password: encode(password)})
+    const result = await fetchJson(url, {method: 'POST', body, headers})
 
-    if (result.success) {
-      return true
+    if (!result.success) {
+      return 'The username and password appear to be invalid'
     }
+
+    return 'success'
   } catch (err) {
-    return false
+    console.error(err)
+    return 'The print server seems to be having some issues'
   }
-  return false
 }
 
 export function updatePrinters(): ThunkAction<UpdateAllPrintersAction> {
@@ -83,12 +84,10 @@ export function updatePrinters(): ThunkAction<UpdateAllPrintersAction> {
     }
 
     dispatch({type: UPDATE_ALL_PRINTERS_START})
-    const success = await logIn(username, password)
-    if (!success) {
-      return dispatch({
-        type: UPDATE_ALL_PRINTERS_FAILURE,
-        payload: 'There was a problem updating the list of printers',
-      })
+
+    const successMsg = await logIn(username, password)
+    if (successMsg !== 'success') {
+      return dispatch({type: UPDATE_ALL_PRINTERS_FAILURE, payload: successMsg})
     }
 
     const url = `https://papercut.stolaf.edu:9192/rpc/api/rest/internal/mobilerelease/api/all-printers?username=${username}`
@@ -107,12 +106,9 @@ export function updatePrintJobs(): ThunkAction<UpdatePrintJobsAction> {
 
     dispatch({type: UPDATE_PRINT_JOBS_START})
 
-    const success = await logIn(username, password)
-    if (!success) {
-      return dispatch({
-        type: UPDATE_PRINT_JOBS_FAILURE,
-        payload: 'There was a problem updating the print jobs',
-      })
+    const successMsg = await logIn(username, password)
+    if (successMsg !== 'success') {
+      return dispatch({type: UPDATE_PRINT_JOBS_FAILURE, payload: successMsg})
     }
 
     const url = `https://papercut.stolaf.edu:9192/rpc/api/rest/internal/webclient/users/${username}/jobs/status`
