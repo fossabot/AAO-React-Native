@@ -46,6 +46,7 @@
     "preset": "react-native"
   },
   "dependencies": {
+    "base-64": "0.1.0",
     "buffer": "5.0.7",
     "bugsnag-react-native": "2.3.0",
     "css-select": "1.2.0",

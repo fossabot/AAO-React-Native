@@ -8,12 +8,8 @@ import {updatePrinters, updatePrintJobs} from '../../flux/parts/stoprint'
 import type {
   PrintJobType,
   HeldJobType,
-  StatusResponseType,
   PrinterType,
-  RecentPopularPrintersResponseType,
-  AllPrintersResponseType,
-  HeldJobsResponseType
-} from './initial-types'
+} from './types'
 import {
   ListRow,
   ListSeparator,
@@ -33,99 +29,101 @@ const styles = StyleSheet.create({
   },
 })
 
-class PrintReleaseView extends React.PureComponent {
+type ReactProps = TopLevelViewPropsType
+
+type ReduxStateProps = {
+  printers: Array<PrinterType>,
+  jobs: Array<HeldJobType>,
+  error: ?string,
+  loading: boolean,
+  credentialsValid: boolean,
+}
+
+type ReduxDispatchProps = {
+  updatePrinters: () => any,
+  updatePrintJobs: () => Promise<any>,
+}
+
+type Props = ReactProps & ReduxDispatchProps & ReduxStateProps
+
+class PrintReleaseView extends React.PureComponent<Props> {
   static navigationOptions = {
     title: 'StoPrint',
-  }
-
-  state = {
-    loading: false,
   }
 
   componentWillMount = () => {
     this.refresh()
   }
 
-  props: TopLevelViewPropsType & {
-    jobs: Array<PrintJobType>,
-    printers: Array<PrinterType>,
-
-    credentialsValid: boolean,
-
-    updatePrinters: () => any,
-    updatePrintJobs: () => Promise<any>,
-  }
-
   refresh = async () => {
     let start = Date.now()
-    this.setState(() => ({loading: true}))
 
     await this.fetchData()
     // console.log('data returned')
 
     // wait 0.5 seconds – if we let it go at normal speed, it feels broken.
     let elapsed = start - Date.now()
-    // console.log('waiting for', elapsed, 'ms')
-    await delay(500 - elapsed)
-    // console.log('done waiting')
-
-    this.setState(() => ({loading: false}))
+    if (elapsed < 500) {
+      await delay(500 - elapsed)
+    }
   }
 
   fetchData = () => {
     return this.props.updatePrintJobs()
   }
 
-  keyExtractor = (item: PrintJobType) => {
-    return item.printerName
-  }
+  keyExtractor = (item: PrintJobType) => item.printerName
 
   openSettings = () => {
     this.props.navigation.navigate('SettingsView')
   }
 
-  renderItem = ({item}: {item: PrintJobType}) =>
-          <ListRow>
-            <Title>{item.documentName}</Title>
-          </ListRow>
+  renderItem = ({item}: {item: PrintJobType}) => (
+    <ListRow>
+      <Title>{item.documentName}</Title>
+    </ListRow>
+  )
 
   render() {
     if (!this.props.credentialsValid) {
-      return <View>
-        <Text>You are not logged in.</Text>
-        <Button onPress={this.openSettings} title="Open Settings" />
-      </View>
+      return (
+        <View>
+          <Text>You are not logged in.</Text>
+          <Button onPress={this.openSettings} title="Open Settings" />
+        </View>
+      )
     }
 
-    const jobs = toPairs(groupBy(this.props.printers, j => j.printerName)).map(([title, data]) => ({title, data}))
+    const jobs = toPairs(groupBy(this.props.printers, j => j.printerName)).map(
+      ([title, data]) => ({title, data}),
+    )
 
     return (
       <SectionList
         ItemSeparatorComponent={ListSeparator}
         ListEmptyComponent={<ListEmpty mode="bug" />}
-        style={styles.list}
-        sections={jobs}
-        refreshing={this.state.loading}
-        onRefresh={this.refresh}
         keyExtractor={this.keyExtractor}
+        onRefresh={this.refresh}
+        refreshing={this.props.loading}
         renderItem={this.renderItem}
+        sections={jobs}
+        style={styles.list}
       />
     )
   }
 }
 
-
-function mapStateToProps(state) {
+function mapStateToProps(state): ReduxStateProps {
   return {
-    printers: state.stoprint.printers.printers,
-    jobs: state.stoprint.jobs.jobs,
-    printerError: state.stoprint.printers.error,
-    jobsError: state.stoprint.jobs.error,
+    printers: state.stoprint.printers,
+    jobs: state.stoprint.jobs,
+    error: state.stoprint.error,
+    loading: state.stoprint ? state.stoprint.loadingJobs || state.stoprint.loadingPrinters : false,
     credentialsValid: state.settings.credentials.valid,
   }
 }
 
-function mapDispatchToProps(dispatch) {
+function mapDispatchToProps(dispatch): ReduxDispatchProps {
   return {
     updatePrinters: () => dispatch(updatePrinters()),
     updatePrintJobs: () => dispatch(updatePrintJobs()),
@@ -133,4 +131,3 @@ function mapDispatchToProps(dispatch) {
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(PrintReleaseView)
-
