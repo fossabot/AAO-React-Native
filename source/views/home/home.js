@@ -54,7 +54,7 @@ function HomePage({navigation, order, inactiveViews, views = allViews}: Props) {
                 if (view.type === 'url') {
                   return trackedOpenUrl({url: view.url, id: view.view})
                 } else {
-                  return navigation.navigate(view.view)
+                  return navigation.navigate(view.view, {tintColor: view.tint})
                 }
               }}
               view={view}
