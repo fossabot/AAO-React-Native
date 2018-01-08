@@ -8,9 +8,12 @@ import {ReportWifiProblemView} from './wifi'
 type Props = {}
 
 export default class HelpView extends React.Component<Props> {
-  static navigationOptions = {
+  static navigationOptions = ({navigation}) => ({
     title: 'Help',
-  }
+    headerStyle: {
+      backgroundColor: navigation.state.params.tintColor,
+    },
+  })
 
   render() {
     return (

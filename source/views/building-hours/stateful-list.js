@@ -53,10 +53,13 @@ type State = {
 }
 
 export class BuildingHoursView extends React.PureComponent<Props, State> {
-  static navigationOptions = {
+  static navigationOptions = ({navigation}) => ({
     title: 'Building Hours',
     headerBackTitle: 'Hours',
-  }
+    headerStyle: {
+      backgroundColor: navigation.state.params.tintColor,
+    },
+  })
 
   state = {
     error: null,

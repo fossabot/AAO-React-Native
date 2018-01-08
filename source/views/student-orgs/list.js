@@ -77,10 +77,13 @@ type State = {
 }
 
 export class StudentOrgsView extends React.PureComponent<Props, State> {
-  static navigationOptions = {
+  static navigationOptions = ({navigation}) => ({
     title: 'Student Orgs',
     headerBackTitle: 'Orgs',
-  }
+    headerStyle: {
+      backgroundColor: navigation.state.params.tintColor,
+    },
+  })
 
   searchBar: any
 

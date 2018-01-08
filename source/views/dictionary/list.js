@@ -52,10 +52,13 @@ type State = {
 }
 
 export class DictionaryView extends React.PureComponent<Props, State> {
-  static navigationOptions = {
+  static navigationOptions = ({navigation}) => ({
     title: 'Campus Dictionary',
     headerBackTitle: 'Dictionary',
-  }
+    headerStyle: {
+      backgroundColor: navigation.state.params.tintColor,
+    },
+  })
 
   state = {
     results: defaultData.data,
