@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {View, TextInput, StyleSheet} from 'react-native'
 import {TabBarIcon} from '../components/tabbar-icon'
 import * as c from '../components/colors'
@@ -22,16 +22,20 @@ const styles = StyleSheet.create({
   },
 })
 
-export class BonAppPickerView extends React.Component {
+type Props = TopLevelViewPropsType
+
+type State = {
+  cafeId: string,
+  menu: ?any,
+}
+
+export class BonAppPickerView extends React.PureComponent<Props, State> {
   static navigationOptions = {
     tabBarLabel: 'BonApp',
     tabBarIcon: TabBarIcon('ionic'),
   }
 
-  state: {
-    cafeId: string,
-    menu: ?any,
-  } = {
+  state = {
     cafeId: '34',
     menu: null,
   }
@@ -39,8 +43,6 @@ export class BonAppPickerView extends React.Component {
   componentWillMount() {
     this.chooseMenu()
   }
-
-  props: TopLevelViewPropsType
 
   chooseCafe = (cafeId: string) => {
     if (!/^\d*$/.test(cafeId)) {
@@ -52,10 +54,10 @@ export class BonAppPickerView extends React.Component {
   chooseMenu = () => {
     const menu = (
       <BonAppHostedMenu
-        navigation={this.props.navigation}
         cafeId={this.state.cafeId}
-        name="BonApp"
         loadingMessage={['Loading…']}
+        name="BonApp"
+        navigation={this.props.navigation}
       />
     )
     this.setState({menu})
@@ -67,12 +69,12 @@ export class BonAppPickerView extends React.Component {
         <Toolbar onPress={this.chooseMenu}>
           <TextInput
             keyboardType="numeric"
-            onChangeText={this.chooseCafe}
-            value={this.state.cafeId}
-            style={styles.default}
             onBlur={this.chooseMenu}
+            onChangeText={this.chooseCafe}
+            style={styles.default}
+            value={this.state.cafeId}
           />
-          <ToolbarButton title="Go" isActive />
+          <ToolbarButton isActive={true} title="Go" />
         </Toolbar>
         {this.state.menu}
       </View>

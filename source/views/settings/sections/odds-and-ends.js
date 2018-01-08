@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {View} from 'react-native'
 import {Cell, Section} from 'react-native-tableview-simple'
 import {version} from '../../../../package.json'
@@ -9,11 +9,29 @@ import {connect} from 'react-redux'
 import {CellToggle} from '../../components/cells/toggle'
 import {PushButtonCell} from '../../components/cells/push-button'
 import {trackedOpenUrl} from '../../components/open-url'
+import * as Icons from '@hawkrives/react-native-alternate-icons'
 
-class OddsAndEndsSection extends React.Component {
-  props: TopLevelViewPropsType & {
-    onChangeFeedbackToggle: (feedbackDisabled: boolean) => any,
-    feedbackDisabled: boolean,
+type Props = TopLevelViewPropsType & {
+  onChangeFeedbackToggle: (feedbackDisabled: boolean) => any,
+  feedbackDisabled: boolean,
+}
+
+type State = {
+  supported: boolean,
+}
+
+class OddsAndEndsSection extends React.PureComponent<Props, State> {
+  state = {
+    supported: false,
+  }
+
+  componentWillMount() {
+    this.checkIfCustomIconsSupported()
+  }
+
+  checkIfCustomIconsSupported = async () => {
+    const supported = await Icons.isSupported()
+    this.setState(() => ({supported}))
   }
 
   onPressButton = (id: string) => {
@@ -23,46 +41,44 @@ class OddsAndEndsSection extends React.Component {
   onCreditsButton = () => this.onPressButton('CreditsView')
   onPrivacyButton = () => this.onPressButton('PrivacyView')
   onLegalButton = () => this.onPressButton('LegalView')
-  onSnapshotsButton = () => this.onPressButton('SnapshotsView')
   onSourceButton = () =>
     trackedOpenUrl({
       url: 'https://github.com/StoDevX/AAO-React-Native',
       id: 'ContributingView',
     })
+  onAppIconButton = () => this.onPressButton('IconSettingsView')
 
   render() {
     return (
       <View>
         <Section header="MISCELLANY">
-          <PushButtonCell title="Credits" onPress={this.onCreditsButton} />
+          {this.state.supported ? (
+            <PushButtonCell
+              onPress={this.onAppIconButton}
+              title="Change App Icon"
+            />
+          ) : null}
+
+          <PushButtonCell onPress={this.onCreditsButton} title="Credits" />
           <PushButtonCell
-            title="Privacy Policy"
             onPress={this.onPrivacyButton}
+            title="Privacy Policy"
           />
-          <PushButtonCell title="Legal" onPress={this.onLegalButton} />
-          <PushButtonCell title="Contributing" onPress={this.onSourceButton} />
+          <PushButtonCell onPress={this.onLegalButton} title="Legal" />
+          <PushButtonCell onPress={this.onSourceButton} title="Contributing" />
         </Section>
 
         <Section header="ODDS &amp; ENDS">
-          <Cell cellStyle="RightDetail" title="Version" detail={version} />
+          <Cell cellStyle="RightDetail" detail={version} title="Version" />
 
           <CellToggle
             label="Share Analytics"
             // These are both inverted because the toggle makes more sense as
             // optout/optin, but the code works better as optin/optout.
-            value={!this.props.feedbackDisabled}
             onChange={val => this.props.onChangeFeedbackToggle(!val)}
+            value={!this.props.feedbackDisabled}
           />
         </Section>
-
-        {process.env.NODE_ENV === 'development'
-          ? <Section header="UTILITIES">
-              <PushButtonCell
-                title="Snapshots"
-                onPress={this.onSnapshotsButton}
-              />
-            </Section>
-          : null}
       </View>
     )
   }

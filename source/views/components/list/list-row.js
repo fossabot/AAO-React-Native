@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {Platform, StyleSheet, View} from 'react-native'
 import * as c from '../colors'
 import {Touchable} from '../touchable'
@@ -62,12 +62,14 @@ export function ListRow(props: PropsType) {
   const arrowPositionStyle = {
     alignSelf: arrowPosition === 'center' ? 'center' : 'flex-start',
   }
-  const arrow = arrowPosition === 'none' || Platform.OS === 'android'
-    ? null
-    : <DisclosureArrow style={arrowPositionStyle} />
+  const arrow =
+    arrowPosition === 'none' || Platform.OS === 'android' ? null : (
+      <DisclosureArrow style={arrowPositionStyle} />
+    )
 
   return (
     <Component
+      onPress={callback}
       style={[
         styles.container,
         !isNil(leftSpacing) && {paddingLeft: leftSpacing},
@@ -76,11 +78,8 @@ export function ListRow(props: PropsType) {
         fullHeight && styles.fullHeight,
         contentContainerStyle,
       ]}
-      onPress={callback}
     >
-      <View style={[styles.childWrapper, style]}>
-        {children}
-      </View>
+      <View style={[styles.childWrapper, style]}>{children}</View>
       {arrow}
     </Component>
   )

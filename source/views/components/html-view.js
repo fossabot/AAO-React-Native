@@ -1,15 +1,16 @@
 // @flow
 
-import React from 'react'
+import * as React from 'react'
 import {WebView} from 'react-native'
 import openUrl, {canOpenUrl} from '../components/open-url'
 
-export class HtmlView extends React.Component {
-  props: {
-    html: string,
-    baseUrl?: ?string,
-    style?: number | Object | Array<number | Object>,
-  }
+type Props = {
+  html: string,
+  baseUrl?: ?string,
+  style?: number | Object | Array<number | Object>,
+}
+
+export class HtmlView extends React.Component<Props> {
   _webview: WebView
 
   onNavigationStateChange = ({url}: {url: string}) => {
@@ -34,10 +35,10 @@ export class HtmlView extends React.Component {
   render() {
     return (
       <WebView
-        style={this.props.style}
         ref={ref => (this._webview = ref)}
-        source={{html: this.props.html, baseUrl: this.props.baseUrl}}
         onNavigationStateChange={this.onNavigationStateChange}
+        source={{html: this.props.html, baseUrl: this.props.baseUrl}}
+        style={this.props.style}
       />
     )
   }

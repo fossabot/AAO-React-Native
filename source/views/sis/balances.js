@@ -1,24 +1,57 @@
-/**
- * @flow
- * All About Olaf
- * Balances page
- */
+// @flow
 
-import React from 'react'
-import {StyleSheet, ScrollView, View, Text, RefreshControl} from 'react-native'
+import * as React from 'react'
+import {
+  StyleSheet,
+  ScrollView,
+  View,
+  Text,
+  RefreshControl,
+  Alert,
+} from 'react-native'
 import {TabBarIcon} from '../components/tabbar-icon'
 import {connect} from 'react-redux'
 import {Cell, TableView, Section} from 'react-native-tableview-simple'
-
+import {
+  hasSeenAcknowledgement,
+  type LoginStateType,
+} from '../../flux/parts/settings'
 import {updateBalances} from '../../flux/parts/sis'
-
+import {type ReduxState} from '../../flux'
 import delay from 'delay'
-import isNil from 'lodash/isNil'
 import * as c from '../components/colors'
-
 import type {TopLevelViewPropsType} from '../types'
 
-class BalancesView extends React.Component {
+const DISCLAIMER = 'This data may be outdated or otherwise inaccurate.'
+const LONG_DISCLAIMER =
+  'This data may be inaccurate.\nBon Appétit is always right.\nThis app is unofficial.'
+
+type ReactProps = TopLevelViewPropsType
+
+type ReduxStateProps = {
+  flex: ?string,
+  ole: ?string,
+  print: ?string,
+  weeklyMeals: ?string,
+  dailyMeals: ?string,
+  mealPlan: ?string,
+  loginState: LoginStateType,
+  message: ?string,
+  alertSeen: boolean,
+}
+
+type ReduxDispatchProps = {
+  hasSeenAcknowledgement: () => any,
+  updateBalances: boolean => any,
+}
+
+type Props = ReactProps & ReduxStateProps & ReduxDispatchProps
+
+type State = {
+  loading: boolean,
+}
+
+class BalancesView extends React.PureComponent<Props, State> {
   static navigationOptions = {
     tabBarLabel: 'Balances',
     tabBarIcon: TabBarIcon('card'),
@@ -28,41 +61,48 @@ class BalancesView extends React.Component {
     loading: false,
   }
 
-  props: TopLevelViewPropsType & {
-    flex: ?number,
-    ole: ?number,
-    print: ?number,
-    weeklyMeals: ?number,
-    dailyMeals: ?number,
-    credentialsValid: boolean,
-    message: ?string,
+  componentWillMount() {
+    // calling "refresh" here, to make clear to the user
+    // that the data is being updated
+    this.refresh()
+  }
 
-    updateBalances: boolean => any,
+  componentDidMount() {
+    if (!this.props.alertSeen) {
+      Alert.alert('', LONG_DISCLAIMER, [
+        {text: 'I Disagree', onPress: this.goBack, style: 'cancel'},
+        {text: 'Okay', onPress: this.props.hasSeenAcknowledgement},
+      ])
+    }
   }
 
   refresh = async () => {
     let start = Date.now()
-    this.setState({loading: true})
+    this.setState(() => ({loading: true}))
 
     await this.fetchData()
 
     // wait 0.5 seconds – if we let it go at normal speed, it feels broken.
-    let elapsed = start - Date.now()
+    let elapsed = Date.now() - start
     await delay(500 - elapsed)
 
-    this.setState({loading: false})
+    this.setState(() => ({loading: false}))
   }
 
   fetchData = async () => {
-    await Promise.all([this.props.updateBalances(true)])
+    await this.props.updateBalances(true)
   }
 
   openSettings = () => {
     this.props.navigation.navigate('SettingsView')
   }
 
+  goBack = () => {
+    this.props.navigation.goBack(null)
+  }
+
   render() {
-    let {flex, ole, print, dailyMeals, weeklyMeals} = this.props
+    let {flex, ole, print, dailyMeals, weeklyMeals, mealPlan} = this.props
     let {loading} = this.state
 
     return (
@@ -70,99 +110,105 @@ class BalancesView extends React.Component {
         contentContainerStyle={styles.stage}
         refreshControl={
           <RefreshControl
-            refreshing={this.state.loading}
             onRefresh={this.refresh}
+            refreshing={this.state.loading}
           />
         }
       >
         <TableView>
-          <Section header="BALANCES">
+          <Section footer={DISCLAIMER} header="BALANCES">
             <View style={styles.balancesRow}>
               <FormattedValueCell
+                formatter={getValueOrNa}
+                indeterminate={loading}
                 label="Flex"
                 value={flex}
-                indeterminate={loading}
-                formatter={getFormattedCurrency}
               />
 
               <FormattedValueCell
+                formatter={getValueOrNa}
+                indeterminate={loading}
                 label="Ole"
                 value={ole}
-                indeterminate={loading}
-                formatter={getFormattedCurrency}
               />
 
               <FormattedValueCell
-                label="Copy/Print"
-                value={print}
+                formatter={getValueOrNa}
                 indeterminate={loading}
-                formatter={getFormattedCurrency}
+                label="Copy/Print"
                 style={styles.finalCell}
+                value={print}
               />
             </View>
           </Section>
 
-          <Section header="MEAL PLAN">
+          <Section footer={DISCLAIMER} header="MEAL PLAN">
             <View style={styles.balancesRow}>
               <FormattedValueCell
+                formatter={getValueOrNa}
+                indeterminate={loading}
                 label="Daily Meals Left"
                 value={dailyMeals}
-                indeterminate={loading}
-                formatter={getFormattedMealsRemaining}
               />
 
               <FormattedValueCell
-                label="Weekly Meals Left"
-                value={weeklyMeals}
+                formatter={getValueOrNa}
                 indeterminate={loading}
-                formatter={getFormattedMealsRemaining}
+                label="Weekly Meals Left"
                 style={styles.finalCell}
+                value={weeklyMeals}
               />
             </View>
+            {mealPlan && (
+              <Cell cellStyle="Subtitle" detail={mealPlan} title="Meal Plan" />
+            )}
           </Section>
 
-          {!this.props.credentialsValid || this.props.message
-            ? <Section footer="You'll need to log in again so we can update these numbers.">
-                {!this.props.credentialsValid
-                  ? <Cell
-                      cellStyle="Basic"
-                      title="Log in with St. Olaf"
-                      accessory="DisclosureIndicator"
-                      onPress={this.openSettings}
-                    />
-                  : null}
+          {this.props.loginState !== 'logged-in' || this.props.message ? (
+            <Section footer="You'll need to log in again so we can update these numbers.">
+              {this.props.loginState !== 'logged-in' ? (
+                <Cell
+                  accessory="DisclosureIndicator"
+                  cellStyle="Basic"
+                  onPress={this.openSettings}
+                  title="Log in with St. Olaf"
+                />
+              ) : null}
 
-                {this.props.message
-                  ? <Cell cellStyle="Basic" title={this.props.message} />
-                  : null}
-              </Section>
-            : null}
+              {this.props.message ? (
+                <Cell cellStyle="Basic" title={this.props.message} />
+              ) : null}
+            </Section>
+          ) : null}
         </TableView>
       </ScrollView>
     )
   }
 }
 
-function mapStateToProps(state) {
+function mapState(state: ReduxState): ReduxStateProps {
   return {
-    flex: state.sis.balances.flex,
-    ole: state.sis.balances.ole,
-    print: state.sis.balances.print,
-    weeklyMeals: state.sis.balances.weekly,
-    dailyMeals: state.sis.balances.daily,
-    message: state.sis.balances.message,
+    flex: state.sis ? state.sis.flexBalance : null,
+    ole: state.sis ? state.sis.oleBalance : null,
+    print: state.sis ? state.sis.printBalance : null,
+    weeklyMeals: state.sis ? state.sis.mealsRemainingThisWeek : null,
+    dailyMeals: state.sis ? state.sis.mealsRemainingToday : null,
+    mealPlan: state.sis ? state.sis.mealPlanDescription : null,
+    message: state.sis ? state.sis.balancesErrorMessage : null,
+    alertSeen: state.settings ? state.settings.unofficiallyAcknowledged : false,
 
-    credentialsValid: state.settings.credentials.valid,
+    loginState: state.settings ? state.settings.loginState : 'logged-out',
   }
 }
 
-function mapDispatchToProps(dispatch) {
+function mapDispatch(dispatch): ReduxDispatchProps {
   return {
     updateBalances: force => dispatch(updateBalances(force)),
+    hasSeenAcknowledgement: () => dispatch(hasSeenAcknowledgement()),
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(BalancesView)
+export default connect(mapState, mapDispatch)(BalancesView)
 
 let cellMargin = 10
 let cellSidePadding = 10
@@ -221,18 +267,12 @@ let styles = StyleSheet.create({
   },
 })
 
-function getFormattedCurrency(value: ?number): string {
-  if (isNil(value)) {
+function getValueOrNa(value: ?string): string {
+  // eslint-disable-next-line no-eq-null
+  if (value == null) {
     return 'N/A'
   }
-  return '$' + (((value: any): number) / 100).toFixed(2)
-}
-
-function getFormattedMealsRemaining(value: ?number): string {
-  if (isNil(value)) {
-    return 'N/A'
-  }
-  return (value: any).toString()
+  return value
 }
 
 function FormattedValueCell({
@@ -244,20 +284,20 @@ function FormattedValueCell({
 }: {
   indeterminate: boolean,
   label: string,
-  value: ?number,
+  value: ?string,
   style?: any,
-  formatter: (?number) => string,
+  formatter: (?string) => string,
 }) {
   return (
     <View style={[styles.rectangle, styles.common, styles.balances, style]}>
       <Text
+        autoAdjustsFontSize={true}
         selectable={true}
         style={styles.financialText}
-        autoAdjustsFontSize={true}
       >
         {indeterminate ? '…' : formatter(value)}
       </Text>
-      <Text style={styles.rectangleButtonText} autoAdjustsFontSize={true}>
+      <Text autoAdjustsFontSize={true} style={styles.rectangleButtonText}>
         {label}
       </Text>
     </View>

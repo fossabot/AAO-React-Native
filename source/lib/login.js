@@ -18,14 +18,14 @@ export function loadLoginCredentials(): Promise<{
   username?: string,
   password?: string,
 }> {
-  return Keychain.getInternetCredentials(
-    SIS_LOGIN_CREDENTIAL_KEY,
-  ).catch(() => ({}))
+  return Keychain.getInternetCredentials(SIS_LOGIN_CREDENTIAL_KEY).catch(
+    () => ({}),
+  )
 }
 export function clearLoginCredentials() {
-  return Keychain.resetInternetCredentials(
-    SIS_LOGIN_CREDENTIAL_KEY,
-  ).catch(() => ({}))
+  return Keychain.resetInternetCredentials(SIS_LOGIN_CREDENTIAL_KEY).catch(
+    () => ({}),
+  )
 }
 
 export async function isLoggedIn(): Promise<boolean> {
@@ -45,10 +45,16 @@ export async function performLogin(
   }
 
   const form = buildFormData({username, password})
-  const loginResult = await fetch(OLECARD_AUTH_URL, {
-    method: 'POST',
-    body: form,
-  })
+  let loginResult = null
+  try {
+    loginResult = await fetch(OLECARD_AUTH_URL, {
+      method: 'POST',
+      body: form,
+    })
+  } catch (err) {
+    return false
+  }
+
   const page = await loginResult.text()
 
   if (page.includes('Password')) {

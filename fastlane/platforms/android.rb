@@ -2,9 +2,6 @@
 platform :android do
   desc 'Makes a build'
   lane :build do |options|
-    # make sure we have a copy of the data files
-    sh('npm run bundle-data')
-
     propagate_version(track: options[:track])
 
     gradle(task: 'assemble',
@@ -15,9 +12,16 @@ platform :android do
     UI.message lane_context[SharedValues::GRADLE_ALL_APK_OUTPUT_PATHS]
   end
 
-  desc 'Submit a new Beta Build to Google Play'
-  lane :beta do |options|
-    track = options[:track] || 'beta'
+  desc 'Checks that the app builds'
+  lane :check_build do
+    build
+  end
+
+  desc 'Submit a new build to Google Play'
+  private_lane :submit do |options|
+    track = options[:track]
+
+    matchesque
     build(track: track)
 
     lane_context[SharedValues::GRADLE_ALL_APK_OUTPUT_PATHS] =
@@ -25,32 +29,35 @@ platform :android do
         apk.end_with? '-release.apk'
       end
 
-    supply(track: track, check_superseded_tracks: true)
+    supply(track: track,
+           check_superseded_tracks: true)
+
+    generate_sourcemap
+    upload_sourcemap_to_bugsnag
   end
 
-  desc 'Submit a new nightly Build to Google Play'
+  desc 'Submit a new beta build to Google Play'
+  lane :beta do
+    submit(track: 'beta')
+  end
+
+  desc 'Submit a new nightly build to Google Play'
   lane :nightly do
-    beta(track: 'alpha')
+    submit(track: 'alpha')
+  end
+
+  desc 'Bundle an Android sourcemap'
+  lane :sourcemap do
+    generate_sourcemap
   end
 
   desc 'Run the appropriate action on CI'
   lane :'ci-run' do
     # prepare for the bright future with signed android betas
     authorize_ci_for_keys
-    matchesque
 
     # and run
     auto_beta
-  end
-
-  desc 'Set up an android emulator on TravisCI'
-  lane :'ci-emulator' do
-    emulator_name = "react-native"
-    Dir.mkdir("$HOME/.android/avd/#{emulator_name}.avd/")
-    sh("echo no | android create avd --force -n '#{emulator_name}' -t android-23 --abi google_apis/armeabi-v7a")
-    sh("emulator -avd '#{emulator_name}' -no-audio -no-window &")
-    sh('android-wait-for-emulator')
-    sh('adb shell input keyevent 82 &')
   end
 
   desc 'extract the android keys from the match repo'

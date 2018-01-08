@@ -2,7 +2,7 @@
 // @flow
 
 import 'react-native'
-import React from 'react'
+import * as React from 'react'
 import ReactShallowRenderer from 'react-test-renderer/shallow'
 
 import {NoticeView} from '../notice'
@@ -19,11 +19,11 @@ test('renders the given text', () => {
 })
 
 test('renders a button, if given', () => {
-  const tree = shallow(<NoticeView text="Label" buttonText="Button" />)
+  const tree = shallow(<NoticeView buttonText="Button" text="Label" />)
   expect(tree).toMatchSnapshot()
 })
 
 test('shows an ActivityIndicator if given [spinner]', () => {
-  const tree = shallow(<NoticeView text="Label" spinner={true} />)
+  const tree = shallow(<NoticeView spinner={true} text="Label" />)
   expect(tree).toMatchSnapshot()
 })

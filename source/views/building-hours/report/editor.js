@@ -4,9 +4,9 @@
  * An editor for individual building schedules.
  */
 
-import React from 'react'
+import * as React from 'react'
 import xor from 'lodash/xor'
-import {ScrollView, Text, StyleSheet} from 'react-native'
+import {View, ScrollView, Platform, Text, StyleSheet} from 'react-native'
 import moment from 'moment-timezone'
 import {TableView, Section, Cell} from 'react-native-tableview-simple'
 import type {SingleBuildingScheduleType, DayOfWeekEnumType} from '../types'
@@ -14,31 +14,38 @@ import {Row} from '../../components/layout'
 import type {TopLevelViewPropsType} from '../../types'
 import {parseHours, blankSchedule} from '../lib'
 import * as c from '../../components/colors'
-import DatePicker from 'react-native-datepicker'
+import {DatePicker} from '../../components/datepicker'
 import {Touchable} from '../../components/touchable'
 import {DeleteButtonCell} from '../../components/cells/delete-button'
+import {CellToggle} from '../../components/cells/toggle'
+import {ListSeparator} from '../../components/list'
 
-export class BuildingHoursScheduleEditorView extends React.PureComponent {
+type Props = TopLevelViewPropsType & {
+  navigation: {
+    state: {
+      params: {
+        set: SingleBuildingScheduleType,
+        onEditSet: (set: SingleBuildingScheduleType) => any,
+        onDeleteSet: () => any,
+      },
+    },
+  },
+}
+
+type State = {
+  set: ?SingleBuildingScheduleType,
+}
+
+export class BuildingHoursScheduleEditorView extends React.PureComponent<
+  Props,
+  State,
+> {
   static navigationOptions = {
     title: 'Edit Schedule',
   }
 
-  state: {
-    set: ?SingleBuildingScheduleType,
-  } = {
+  state = {
     set: this.props.navigation.state.params.initialSet,
-  }
-
-  props: TopLevelViewPropsType & {
-    navigation: {
-      state: {
-        params: {
-          set: SingleBuildingScheduleType,
-          onEditSet: (set: SingleBuildingScheduleType) => any,
-          onDeleteSet: () => any,
-        },
-      },
-    },
   }
 
   delete = () => {
@@ -81,19 +88,19 @@ export class BuildingHoursScheduleEditorView extends React.PureComponent {
 
           <Section header="TIMES">
             <DatePickerCell
-              title="Open"
               date={open}
               onChange={this.onChangeOpen}
+              title="Open"
             />
             <DatePickerCell
-              title="Close"
               date={close}
               onChange={this.onChangeClose}
+              title="Close"
             />
           </Section>
 
           <Section>
-            <DeleteButtonCell title="Delete Hours" onPress={this.delete} />
+            <DeleteButtonCell onPress={this.delete} title="Delete Hours" />
           </Section>
         </TableView>
       </ScrollView>
@@ -101,9 +108,35 @@ export class BuildingHoursScheduleEditorView extends React.PureComponent {
   }
 }
 
-class WeekToggles extends React.PureComponent {
-  props: {days: DayOfWeekEnumType[], onChangeDays: (DayOfWeekEnumType[]) => any}
+type WeekTogglesProps = {
+  days: DayOfWeekEnumType[],
+  onChangeDays: (DayOfWeekEnumType[]) => any,
+}
 
+class WeekTogglesIOS extends React.PureComponent<WeekTogglesProps> {
+  toggleDay = (day: DayOfWeekEnumType) => {
+    this.props.onChangeDays(xor(this.props.days, [day]))
+  }
+
+  render() {
+    const allDays = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
+
+    return (
+      <Row alignItems="stretch" justifyContent="center">
+        {allDays.map(day => (
+          <ToggleButton
+            key={day}
+            active={this.props.days.includes(day)}
+            onPress={this.toggleDay}
+            text={day}
+          />
+        ))}
+      </Row>
+    )
+  }
+}
+
+class WeekTogglesAndroid extends React.PureComponent<WeekTogglesProps> {
   toggleDay = day => {
     this.props.onChangeDays(xor(this.props.days, [day]))
   }
@@ -112,37 +145,38 @@ class WeekToggles extends React.PureComponent {
     const allDays = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
 
     return (
-      <Row justifyContent="center">
-        {allDays.map((day, i) =>
-          <ToggleButton
-            key={day}
-            text={day}
-            active={this.props.days.includes(day)}
-            onPress={this.toggleDay}
-            style={i === allDays.length - 1 && styles.finalCell}
-          />,
-        )}
-      </Row>
+      <View>
+        {allDays.map((day, i) => (
+          <View key={day}>
+            <CellToggle
+              key={day}
+              label={day}
+              onChange={() => this.toggleDay(day)}
+              value={this.props.days.includes(day)}
+            />
+            {i === allDays.length - 1 ? null : <ListSeparator force={true} />}
+          </View>
+        ))}
+      </View>
     )
   }
 }
 
-class ToggleButton extends React.PureComponent {
-  props: {
-    active: boolean,
-    text: string,
-    onPress: (newState: string) => any,
-    style?: any,
-  }
+type ToggleButtonProps = {
+  active: boolean,
+  text: DayOfWeekEnumType,
+  onPress: (newState: DayOfWeekEnumType) => any,
+}
 
+class ToggleButton extends React.PureComponent<ToggleButtonProps> {
   onPress = () => this.props.onPress(this.props.text)
 
   render() {
-    const {text, style, active} = this.props
+    const {text, active} = this.props
     return (
       <Touchable
+        containerStyle={[styles.dayWrapper, active && styles.activeDay]}
         highlight={false}
-        containerStyle={[style, styles.dayWrapper, active && styles.activeDay]}
         onPress={this.onPress}
       >
         <Text style={[styles.dayText, active && styles.activeDayText]}>
@@ -153,74 +187,52 @@ class ToggleButton extends React.PureComponent {
   }
 }
 
-class DatePickerCell extends React.PureComponent {
-  props: {
-    date: moment,
-    title: string,
-    onChange?: (date: moment) => any,
-    _ref?: (ref: any) => any,
-  }
+const WeekToggles = Platform.OS === 'ios' ? WeekTogglesIOS : WeekTogglesAndroid
 
+type DatePickerCellProps = {
+  date: moment,
+  title: string,
+  onChange: (date: moment) => any,
+}
+
+class DatePickerCell extends React.PureComponent<DatePickerCellProps> {
   _picker: any
-  openPicker = () => {} //this._picker.onPressDate()
+  openPicker = () => this._picker.onPressDate()
 
-  setRef = (ref: any) => {
-    this._picker = ref
-    this.props._ref && this.props._ref(ref)
-  }
+  getRef = (ref: any) => (this._picker = ref)
 
   onChange = (newDate: moment) => {
-    console.log(newDate)
-    this.props.onChange && this.props.onChange(newDate)
+    const oldMoment = moment()
+
+    oldMoment.hours(newDate.hours())
+    oldMoment.minutes(newDate.minutes())
+
+    this.props.onChange(oldMoment)
   }
 
   render() {
-    const {date, title} = this.props
+    const format = 'h:mm A'
+
     const accessory = (
-      <Date ref={this.setRef} date={date.toDate()} onChange={this.onChange} />
+      <DatePicker
+        ref={this.getRef}
+        format={format}
+        initialDate={this.props.date}
+        minuteInterval={5}
+        mode="time"
+        onDateChange={this.onChange}
+      />
     )
 
     return (
       <Cell
-        title={title}
-        cellStyle="RightDetail"
         cellAccessoryView={accessory}
+        cellStyle="RightDetail"
         onPress={this.openPicker}
+        title={this.props.title}
       />
     )
   }
-}
-
-const Date = ({date, onChange}) => {
-  const format = 'h:mma'
-
-  const callback = (newDateString: string) => {
-    const oldMoment = moment(date)
-    const newMoment = moment(newDateString, format)
-
-    oldMoment.hours(newMoment.hours())
-    oldMoment.minutes(newMoment.minutes())
-
-    onChange(oldMoment)
-  }
-
-  return (
-    <DatePicker
-      date={date}
-      style={styles.datePicker}
-      mode="time"
-      format={format}
-      is24Hour={false}
-      confirmBtnText="Confirm"
-      cancelBtnText="Cancel"
-      showIcon={false}
-      onDateChange={callback}
-      customStyles={{
-        dateInput: styles.datePickerInput,
-        dateText: styles.datePickerText,
-      }}
-    />
-  )
 }
 
 const styles = StyleSheet.create({
@@ -230,11 +242,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 2,
     backgroundColor: c.white,
-    borderRightWidth: StyleSheet.hairlineWidth,
-    borderRightColor: c.iosSeparator,
-  },
-  finalCell: {
-    borderRightWidth: 0,
   },
   activeDay: {
     backgroundColor: c.brickRed,
@@ -244,16 +251,5 @@ const styles = StyleSheet.create({
   },
   activeDayText: {
     color: c.white,
-  },
-  datePicker: {
-    width: null,
-  },
-  datePickerInput: {
-    flex: 0,
-    borderWidth: 0,
-  },
-  datePickerText: {
-    color: c.iosDisabledText,
-    fontSize: 16,
   },
 })

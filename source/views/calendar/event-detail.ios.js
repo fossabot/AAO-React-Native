@@ -1,13 +1,16 @@
 // @flow
-import React from 'react'
-import {Text, ScrollView, StyleSheet, Share} from 'react-native'
-import {fastGetTrimmedText} from '../../lib/html'
+import * as React from 'react'
+import {Text, ScrollView, StyleSheet} from 'react-native'
 import {Cell, Section, TableView} from 'react-native-tableview-simple'
-import type {EventType} from './types'
+import type {CleanedEventType, PoweredBy} from './types'
+import type {TopLevelViewPropsType} from '../types'
 import {ShareButton} from '../components/nav-buttons'
-import getUrls from 'get-urls'
 import openUrl from '../components/open-url'
-import {times} from './times'
+import {ListFooter} from '../components/list'
+import {getLinksFromEvent} from './clean-event'
+import {ButtonCell} from '../components/cells/button'
+import {addToCalendar, shareEvent} from './calendar-util'
+import delay from 'delay'
 
 const styles = StyleSheet.create({
   chunk: {
@@ -15,92 +18,123 @@ const styles = StyleSheet.create({
   },
 })
 
-const shareItem = (event: EventType) => {
-  const summary = event.summary ? event.summary : ''
-  const times = getTimes(event) ? getTimes(event) : ''
-  const location = event.location ? event.location : ''
-  const message = `${summary}\n\n${times}\n\n${location}`
-  Share.share({message})
-    .then(result => console.log(result))
-    .catch(error => console.log(error.message))
-}
-
 function MaybeSection({header, content}: {header: string, content: string}) {
-  return content.trim()
-    ? <Section header={header}>
+  return content.trim() ? (
+    <Section header={header}>
+      <Cell
+        cellContentView={
+          <Text selectable={true} style={styles.chunk}>
+            {content}
+          </Text>
+        }
+      />
+    </Section>
+  ) : null
+}
+
+function Links({header, event}: {header: string, event: CleanedEventType}) {
+  const links = getLinksFromEvent(event)
+
+  return links.length ? (
+    <Section header={header}>
+      {links.map(url => (
         <Cell
-          cellContentView={
-            <Text selectable={true} style={styles.chunk}>
-              {content}
-            </Text>
-          }
+          key={url}
+          accessory="DisclosureIndicator"
+          onPress={() => openUrl(url)}
+          title={url}
         />
-      </Section>
-    : null
+      ))}
+    </Section>
+  ) : null
 }
 
-function Links({header, content}: {header: string, content: string}) {
-  const links = Array.from(getUrls(content))
-
-  return links.length
-    ? <Section header={header}>
-        {links.map(url =>
-          <Cell
-            key={url}
-            title={url}
-            accessory="DisclosureIndicator"
-            onPress={() => openUrl(url)}
-          />,
-        )}
-      </Section>
-    : null
-}
-
-function cleanDescription(desc: string) {
-  const description = fastGetTrimmedText(desc || '')
-  if (description == 'See more details') {
-    return ''
-  }
-
-  return description
-}
-
-function getTimes(event: EventType) {
-  const {allDay, start, end} = times(event)
-
-  if (allDay) {
-    return 'All-Day'
-  }
-
-  return `${start} — ${end}`
-}
-
-export function EventDetail(props: {
-  navigation: {state: {params: {event: EventType}}},
-}) {
-  const {event} = props.navigation.state.params
-  const title = fastGetTrimmedText(event.summary || '')
-  const summary = event.extra.data.description || ''
-  const rawSummary = cleanDescription(event.extra.data.description || '')
-  const location = fastGetTrimmedText(event.location || '')
-  const times = getTimes(event)
-
+const CalendarButton = ({message, disabled, onPress}) => {
   return (
-    <ScrollView>
-      <TableView>
-        <MaybeSection header="EVENT" content={title} />
-        <MaybeSection header="TIME" content={times} />
-        <MaybeSection header="LOCATION" content={location} />
-        <MaybeSection header="DESCRIPTION" content={rawSummary} />
-        <Links header="LINKS" content={summary} />
-      </TableView>
-    </ScrollView>
+    <Section footer={message}>
+      <ButtonCell
+        disabled={disabled}
+        onPress={onPress}
+        title="Add to calendar"
+      />
+    </Section>
   )
 }
-EventDetail.navigationOptions = ({navigation}) => {
-  const {event} = navigation.state.params
-  return {
-    title: event.summary,
-    headerRight: <ShareButton onPress={() => shareItem(event)} />,
+
+type Props = TopLevelViewPropsType & {
+  navigation: {
+    state: {params: {event: CleanedEventType, poweredBy: ?PoweredBy}},
+  },
+}
+
+type State = {
+  message: string,
+  disabled: boolean,
+}
+
+export class EventDetail extends React.PureComponent<Props, State> {
+  static navigationOptions = ({navigation}) => {
+    const {event} = navigation.state.params
+    return {
+      title: event.title,
+      headerRight: <ShareButton onPress={() => shareEvent(event)} />,
+    }
+  }
+
+  state = {
+    message: '',
+    disabled: false,
+  }
+
+  addEvent = async (event: CleanedEventType) => {
+    const start = Date.now()
+    this.setState(() => ({message: 'Adding event to calendar…'}))
+
+    // wait 0.5 seconds – if we let it go at normal speed, it feels broken.
+    const elapsed = Date.now() - start
+    if (elapsed < 500) {
+      await delay(500 - elapsed)
+    }
+
+    const result = await addToCalendar(event)
+
+    if (result) {
+      this.setState(() => ({
+        message: 'Event has been added to your calendar',
+        disabled: true,
+      }))
+    } else {
+      this.setState(() => ({
+        message: 'Could not add event to your calendar',
+        disabled: false,
+      }))
+    }
+  }
+
+  onPressButton = () => this.addEvent(this.props.navigation.state.params.event)
+
+  render() {
+    const {event, poweredBy} = this.props.navigation.state.params
+
+    return (
+      <ScrollView>
+        <TableView>
+          <MaybeSection content={event.title} header="EVENT" />
+          <MaybeSection content={event.times} header="TIME" />
+          <MaybeSection content={event.location} header="LOCATION" />
+          <MaybeSection content={event.rawSummary} header="DESCRIPTION" />
+          <Links event={event} header="LINKS" />
+          <CalendarButton
+            disabled={this.state.disabled}
+            message={this.state.message}
+            onPress={this.onPressButton}
+          />
+
+          {poweredBy.title ? (
+            <ListFooter href={poweredBy.href} title={poweredBy.title} />
+          ) : null}
+        </TableView>
+      </ScrollView>
+    )
   }
 }

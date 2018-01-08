@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {StyleSheet, Text} from 'react-native'
 import type {EventType} from './types'
 import * as c from '../components/colors'
@@ -32,43 +32,48 @@ const styles = StyleSheet.create({
   },
 })
 
-export default function EventRow({
-  event,
-  onPress,
-}: {
+type Props = {
   event: EventType,
-  onPress: () => any,
-}) {
-  const title = fastGetTrimmedText(event.summary)
+  onPress: EventType => any,
+}
 
-  const location = event.location && event.location.trim().length
-    ? <Detail>{event.location}</Detail>
-    : null
+export default class EventRow extends React.PureComponent<Props> {
+  _onPress = () => this.props.onPress(this.props.event)
 
-  return (
-    <ListRow
-      contentContainerStyle={styles.row}
-      arrowPosition="top"
-      fullWidth={true}
-      onPress={onPress}
-    >
-      <Row>
-        <CalendarTimes event={event} style={styles.timeContainer} />
+  render() {
+    const {event} = this.props
+    const title = fastGetTrimmedText(event.summary)
 
-        <Bar style={styles.bar} />
+    const location =
+      event.location && event.location.trim().length ? (
+        <Detail>{event.location}</Detail>
+      ) : null
 
-        <Column
-          flex={1}
-          paddingTop={2}
-          paddingBottom={3}
-          justifyContent="space-between"
-        >
-          <Title>{title}</Title>
-          {location}
-        </Column>
-      </Row>
-    </ListRow>
-  )
+    return (
+      <ListRow
+        arrowPosition="top"
+        contentContainerStyle={styles.row}
+        fullWidth={true}
+        onPress={this._onPress}
+      >
+        <Row minHeight={46}>
+          <CalendarTimes event={event} style={styles.timeContainer} />
+
+          <Bar style={styles.bar} />
+
+          <Column
+            flex={1}
+            justifyContent="space-between"
+            paddingBottom={3}
+            paddingTop={2}
+          >
+            <Title>{title}</Title>
+            {location}
+          </Column>
+        </Row>
+      </ListRow>
+    )
+  }
 }
 
 function CalendarTimes({event, style}: {event: EventType, style: any}) {

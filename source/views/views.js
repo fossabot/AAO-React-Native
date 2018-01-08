@@ -121,6 +121,23 @@ export const allViews: ViewType[] = [
     gradient: c.lightBlueToBlueDark,
   },
   {
+    type: 'url',
+    url: 'https://moodle.stolaf.edu/',
+    view: 'MoodleView',
+    title: 'Moodle',
+    icon: 'graduation-cap',
+    tint: c.cantaloupe,
+    gradient: c.yellowToGoldDark,
+  },
+  {
+    type: 'view',
+    view: 'HelpView',
+    title: 'Report A Problem',
+    icon: 'help',
+    tint: c.lavender,
+    gradient: c.purpleToIndigo,
+  },
+  {
     type: 'view',
     view: 'PrintReleaseView',
     title: 'StoPrint',
@@ -128,14 +145,6 @@ export const allViews: ViewType[] = [
     tint: c.chartreuse,
     gradient: c.tealToSeafoam,
   },
-  //   {
-  //     type: 'view',
-  //     view: 'HelpView',
-  //     title: 'Report A Problem',
-  //     icon: 'help',
-  //     tint: c.lavender,
-  //     gradient: c.purpleToIndigo,
-  //   },
 ]
 
 export const allViewNames = allViews.map(v => v.view)

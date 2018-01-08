@@ -1,207 +1,217 @@
 // @flow
 
-import React from 'react'
-import {View, StyleSheet} from 'react-native'
+import * as React from 'react'
+import {StyleSheet, SectionList} from 'react-native'
 import * as c from '../../components/colors'
 import {connect} from 'react-redux'
-import {updateMenuFilters} from '../../../flux'
-import type {TopLevelViewPropsType} from '../../types'
+import {updateMenuFilters, type ReduxState} from '../../../flux'
+import {type TopLevelViewPropsType} from '../../types'
 import type momentT from 'moment'
 import type {
   MenuItemType,
   MasterCorIconMapType,
   ProcessedMealType,
   MenuItemContainerType,
+  StationMenuType,
 } from '../types'
-import fromPairs from 'lodash/fromPairs'
 import size from 'lodash/size'
 import values from 'lodash/values'
 import {ListSeparator, ListSectionHeader} from '../../components/list'
-import type {FilterType} from '../../components/filter'
-import {applyFiltersToItem} from '../../components/filter'
-import SimpleListView from '../../components/listview'
+import {applyFiltersToItem, type FilterType} from '../../components/filter'
 import {NoticeView} from '../../components/notice'
-import {FilterMenuToolbar} from './filter-menu-toolbar'
+import {FilterMenuToolbar as FilterToolbar} from './filter-menu-toolbar'
 import {FoodItemRow} from './food-item-row'
 import {chooseMeal} from '../lib/choose-meal'
 import {buildFilters} from '../lib/build-filters'
 
-type FancyMenuPropsType = TopLevelViewPropsType & {
-  applyFilters: (filters: FilterType[], item: MenuItemType) => boolean,
-  now: momentT,
-  name: string,
-  filters: FilterType[],
+type ReactProps = TopLevelViewPropsType & {
+  cafeMessage?: ?string,
   foodItems: MenuItemContainerType,
   meals: ProcessedMealType[],
   menuCorIcons: MasterCorIconMapType,
+  name: string,
+  now: momentT,
+  onRefresh?: ?() => any,
+  refreshing?: ?boolean,
+}
+
+type ReduxDispatchProps = {
   onFiltersChange: (f: FilterType[]) => any,
 }
 
-const leftSideSpacing = 28
+type ReduxStateProps = {
+  filters: FilterType[],
+}
+
+type DefaultProps = {
+  applyFilters: (filters: FilterType[], item: MenuItemType) => boolean,
+}
+
+type Props = ReactProps & ReduxStateProps & ReduxDispatchProps & DefaultProps
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   inner: {
-    flex: 1,
     backgroundColor: c.white,
+  },
+  message: {
+    paddingVertical: 16,
   },
 })
 
-class FancyMenuView extends React.Component {
+const LEFT_MARGIN = 28
+const Separator = () => <ListSeparator spacing={{left: LEFT_MARGIN}} />
+
+class FancyMenu extends React.PureComponent<Props> {
   static defaultProps = {
     applyFilters: applyFiltersToItem,
   }
 
   componentWillMount() {
-    let {foodItems, menuCorIcons, filters, meals, now} = this.props
+    this.updateFilters(this.props)
+  }
+
+  componentWillReceiveProps(nextProps: Props) {
+    this.updateFilters(nextProps)
+  }
+
+  updateFilters = (props: Props) => {
+    const {foodItems, menuCorIcons, filters, meals, now} = props
 
     // prevent ourselves from overwriting the filters from redux on mount
     if (filters.length) {
       return
     }
 
-    const foodItemsArray = values(foodItems)
-    this.props.onFiltersChange(
-      buildFilters(foodItemsArray, menuCorIcons, meals, now),
-    )
+    const newFilters = buildFilters(values(foodItems), menuCorIcons, meals, now)
+    props.onFiltersChange(newFilters)
   }
 
-  props: FancyMenuPropsType
+  areSpecialsFiltered = filters => Boolean(filters.find(this.isSpecialsFilter))
+  isSpecialsFilter = f =>
+    f.enabled && f.type === 'toggle' && f.spec.label === 'Only Show Specials'
 
   openFilterView = () => {
     this.props.navigation.navigate('FilterView', {
+      title: `Filter ${this.props.name} Menu`,
       pathToFilters: ['menus', this.props.name],
       onChange: filters => this.props.onFiltersChange(filters),
     })
   }
 
-  renderSectionHeader = (sectionData: MenuItemType[], sectionName: string) => {
+  groupMenuData = (props: Props, stations: Array<StationMenuType>) => {
+    const {applyFilters, filters, foodItems} = props
+
+    const derefrenceMenuItems = menu =>
+      menu.items
+        // Dereference each menu item
+        .map(id => foodItems[id])
+        // Ensure that the referenced menu items exist,
+        // and apply the selected filters to the items in the menu
+        .filter(item => item && applyFilters(filters, item))
+
+    const menusWithItems = stations
+      // We're grouping the menu items in a [label, Array<items>] tuple.
+      .map(menu => [menu.label, derefrenceMenuItems(menu)])
+      // We only want to show stations with at least one item in them
+      .filter(([_, items]) => items.length)
+      // We need to map the tuples into objects for SectionList
+      .map(([title, data]) => ({title, data}))
+
+    return menusWithItems
+  }
+
+  renderSectionHeader = ({section: {title}}: any) => {
     const {filters, now, meals} = this.props
     const {stations} = chooseMeal(meals, filters, now)
-    const menu = stations.find(m => m.label === sectionName)
-    const note = menu ? menu.note : ''
+    const menu = stations.find(m => m.label === title)
 
     return (
       <ListSectionHeader
-        title={sectionName}
-        subtitle={note}
-        spacing={{left: leftSideSpacing}}
+        spacing={{left: LEFT_MARGIN}}
+        subtitle={menu ? menu.note : ''}
+        title={title}
       />
     )
   }
 
-  renderSeparator = (sectionId: string, rowId: string) => {
+  renderItem = ({item}: {item: MenuItemType}) => {
+    const specialsFilterEnabled = this.areSpecialsFiltered(this.props.filters)
     return (
-      <ListSeparator
-        spacing={{left: leftSideSpacing}}
-        key={`${sectionId}-${rowId}`}
+      <FoodItemRow
+        badgeSpecials={!specialsFilterEnabled}
+        corIcons={this.props.menuCorIcons}
+        data={item}
+        spacing={{left: LEFT_MARGIN}}
       />
     )
   }
+
+  keyExtractor = (item, index) => index.toString()
 
   render() {
-    const {applyFilters, filters, foodItems, now, meals} = this.props
+    const {filters, now, meals, cafeMessage} = this.props
 
-    const {label: mealName, stations: stationMenus} = chooseMeal(
-      meals,
-      filters,
-      now,
-    )
-
-    const filteredByMenu = stationMenus
-      .map(menu => [
-        // we're grouping the menu items in a [label, Array<items>] tuple.
-        menu.label,
-        // dereference each menu item
-        menu.items
-          .map(id => foodItems[id])
-          // ensure that the referenced menu items exist
-          // and apply the selected filters to the items in the menu
-          .filter(item => item && applyFilters(filters, item)),
-      ])
-      // we only want to show stations with at least one item in them
-      .filter(([_, items]) => items.length)
-
-    // group the tuples into an object (because ListView wants {key: value} not [key, value])
-    const grouped = fromPairs(filteredByMenu)
-
+    const {label: mealName, stations} = chooseMeal(meals, filters, now)
     const anyFiltersEnabled = filters.some(f => f.enabled)
-    const specialsFilterEnabled = Boolean(
-      filters.find(
-        f =>
-          f.enabled &&
-          f.type === 'toggle' &&
-          f.spec.label === 'Only Show Specials',
-      ),
-    )
+    const specialsFilterEnabled = this.areSpecialsFiltered(filters)
+    const groupedMenuData = this.groupMenuData(this.props, stations)
 
-    let messageView = null
-    if (specialsFilterEnabled && stationMenus.length === 0) {
-      messageView = (
-        <NoticeView
-          style={styles.inner}
-          text="No items to show. There may be no specials today. Try changing the filters."
-        />
-      )
-    } else if (anyFiltersEnabled && !size(grouped)) {
-      messageView = (
-        <NoticeView
-          style={styles.inner}
-          text="No items to show. Try changing the filters."
-        />
-      )
-    } else if (!size(grouped)) {
-      messageView = (
-        <NoticeView style={styles.container} text="No items to show." />
-      )
+    let message = 'No items to show.'
+    if (cafeMessage) {
+      message = cafeMessage
+    } else if (specialsFilterEnabled && stations.length === 0) {
+      message =
+        'No items to show. There may be no specials today. Try changing the filters.'
+    } else if (anyFiltersEnabled && !size(groupedMenuData)) {
+      message = 'No items to show. Try changing the filters.'
     }
 
+    const messageView = <NoticeView style={styles.message} text={message} />
+
+    const header = (
+      <FilterToolbar
+        date={now}
+        filters={filters}
+        onPress={this.openFilterView}
+        title={mealName}
+      />
+    )
+
     return (
-      <View style={styles.container}>
-        <FilterMenuToolbar
-          date={now}
-          title={mealName}
-          filters={filters}
-          onPress={this.openFilterView}
-        />
-        {messageView
-          ? messageView
-          : <SimpleListView
-              style={styles.inner}
-              data={grouped}
-              renderSeparator={this.renderSeparator}
-              renderSectionHeader={this.renderSectionHeader}
-            >
-              {(rowData: MenuItemType) =>
-                <FoodItemRow
-                  data={rowData}
-                  corIcons={this.props.menuCorIcons}
-                  // We can't conditionally show the star – wierd things happen, like
-                  // the first two items having a star and none of the rest.
-                  //badgeSpecials={!specialsFilterEnabled}
-                  badgeSpecials={true}
-                  spacing={{left: leftSideSpacing}}
-                />}
-            </SimpleListView>}
-      </View>
+      <SectionList
+        ItemSeparatorComponent={Separator}
+        ListEmptyComponent={messageView}
+        ListHeaderComponent={header}
+        data={filters}
+        keyExtractor={this.keyExtractor}
+        onRefresh={this.props.onRefresh}
+        refreshing={this.props.refreshing}
+        renderItem={this.renderItem}
+        renderSectionHeader={this.renderSectionHeader}
+        sections={(groupedMenuData: any)}
+        style={styles.inner}
+      />
     )
   }
 }
 
-function mapStateToProps(state, actualProps: FancyMenuPropsType) {
+const mapState = (
+  state: ReduxState,
+  actualProps: ReactProps,
+): ReduxStateProps => {
+  if (!state.menus) {
+    return {filters: []}
+  }
   return {
     filters: state.menus[actualProps.name] || [],
   }
 }
 
-function mapDispatchToProps(dispatch, actualProps: FancyMenuPropsType) {
+const mapDispatch = (dispatch, actualProps: ReactProps): ReduxDispatchProps => {
   return {
     onFiltersChange: (filters: FilterType[]) =>
       dispatch(updateMenuFilters(actualProps.name, filters)),
   }
 }
 
-export const FancyMenu = connect(mapStateToProps, mapDispatchToProps)(
-  FancyMenuView,
-)
+export const ConnectedFancyMenu = connect(mapState, mapDispatch)(FancyMenu)

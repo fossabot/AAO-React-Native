@@ -1,22 +1,32 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import delay from 'delay'
 import type {StoryType} from './types'
 import LoadingView from '../components/loading'
 import {NoticeView} from '../components/notice'
 import type {TopLevelViewPropsType} from '../types'
 import {tracker} from '../../analytics'
-import bugsnag from '../../bugsnag'
+import {reportNetworkProblem} from '../../lib/report-network-problem'
 import {NewsList} from './news-list'
 import {fetchRssFeed, fetchWpJson} from './fetch-feed'
 
-export default class NewsContainer extends React.Component {
-  state: {
-    entries: StoryType[],
-    loading: boolean,
-    refreshing: boolean,
-    error: ?Error,
-  } = {
+type Props = TopLevelViewPropsType & {
+  name: string,
+  url: string,
+  query?: Object,
+  embedFeaturedImage?: boolean,
+  mode: 'rss' | 'wp-json',
+  thumbnail: number,
+}
+
+type State = {
+  entries: StoryType[],
+  loading: boolean,
+  refreshing: boolean,
+  error: ?Error,
+}
+export default class NewsContainer extends React.PureComponent<Props, State> {
+  state = {
     entries: [],
     loading: true,
     error: null,
@@ -24,15 +34,9 @@ export default class NewsContainer extends React.Component {
   }
 
   componentWillMount() {
-    this.fetchData().then(() => this.setState({loading: false}))
-  }
-
-  props: TopLevelViewPropsType & {
-    name: string,
-    url: string,
-    query?: Object,
-    embedFeaturedImage?: boolean,
-    mode: 'rss' | 'wp-json',
+    this.fetchData().then(() => {
+      this.setState(() => ({loading: false}))
+    })
   }
 
   fetchData = async () => {
@@ -47,36 +51,34 @@ export default class NewsContainer extends React.Component {
         throw new Error(`unknown mode ${this.props.mode}`)
       }
 
-      this.setState({entries})
+      this.setState(() => ({entries}))
     } catch (error) {
       if (error.message.startsWith('Unexpected token <')) {
         tracker.trackEvent('news', 'St. Olaf WPDefender strikes again')
-        this.setState({
+        this.setState(() => ({
           error: new Error(
             "Oops. Looks like we've triggered a St. Olaf website defense mechanism. Try again in 5 minutes.",
           ),
-        })
+        }))
       } else {
-        tracker.trackException(error.message)
-        bugsnag.notify(error)
-        console.warn(error)
-        this.setState({error})
+        reportNetworkProblem(error)
+        this.setState(() => ({error}))
       }
     }
   }
 
-  refresh = async () => {
+  refresh = async (): any => {
     let start = Date.now()
-    this.setState({refreshing: true})
+    this.setState(() => ({refreshing: true}))
 
     await this.fetchData()
 
     // wait 0.5 seconds – if we let it go at normal speed, it feels broken.
-    let elapsed = start - Date.now()
+    let elapsed = Date.now() - start
     if (elapsed < 500) {
       await delay(500 - elapsed)
     }
-    this.setState({refreshing: false})
+    this.setState(() => ({refreshing: false}))
   }
 
   render() {
@@ -90,13 +92,14 @@ export default class NewsContainer extends React.Component {
 
     return (
       <NewsList
-        entries={this.state.entries}
-        onRefresh={this.refresh}
-        loading={this.state.refreshing}
-        navigation={this.props.navigation}
-        name={this.props.name}
-        mode={this.props.mode}
         embedFeaturedImage={this.props.embedFeaturedImage}
+        entries={this.state.entries}
+        loading={this.state.refreshing}
+        mode={this.props.mode}
+        name={this.props.name}
+        navigation={this.props.navigation}
+        onRefresh={this.refresh}
+        thumbnail={this.props.thumbnail}
       />
     )
   }

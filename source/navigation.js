@@ -5,31 +5,38 @@ import {StackNavigator} from 'react-navigation'
 import * as c from './views/components/colors'
 
 import CalendarView, {EventDetail as EventDetailView} from './views/calendar'
-import {ContactsView} from './views/contacts'
+import {ContactsView, ContactsDetailView} from './views/contacts'
 import {DictionaryView, DictionaryDetailView} from './views/dictionary'
 import {HomeView, EditHomeView} from './views/home'
-import StreamingView from './views/streaming'
-import {MenusView} from './views/menus'
+import StreamingView, {KSTOScheduleView} from './views/streaming'
+import {
+  MenusView,
+  CarletonBurtonMenuScreen,
+  CarletonLDCMenuScreen,
+  CarletonWeitzMenuScreen,
+  CarletonSaylesMenuScreen,
+} from './views/menus'
 import {FilterView} from './views/components/filter'
 import NewsView from './views/news'
-import NewsItemView from './views/news/news-item'
 import SISView from './views/sis'
-import JobDetailView from './views/sis/student-work/detail'
+import {JobDetailView} from './views/sis/student-work/detail'
 import {
   BuildingHoursView,
   BuildingHoursDetailView,
   BuildingHoursProblemReportView,
   BuildingHoursScheduleEditorView,
 } from './views/building-hours'
-import TransportationView, {BusMapView} from './views/transportation'
+import TransportationView, {
+  BusMap as BusMapView,
+  OtherModesDetailView,
+} from './views/transportation'
 import SettingsView from './views/settings'
-import SISLoginView from './views/settings/login'
 import CreditsView from './views/settings/credits'
 import PrivacyView from './views/settings/privacy'
 import LegalView from './views/settings/legal'
+import {IconSettingsView} from './views/settings/icon'
 import {StudentOrgsView, StudentOrgsDetailView} from './views/student-orgs'
 import {FaqView} from './views/faqs'
-// import {SnapshotsView} from './storybook'
 import HelpView from './views/help'
 import PrintReleaseView from './views/stoprint'
 
@@ -58,6 +65,7 @@ export const AppNavigator = StackNavigator(
     BuildingHoursScheduleEditorView: {screen: BuildingHoursScheduleEditorView},
     CalendarView: {screen: CalendarView},
     ContactsView: {screen: ContactsView},
+    ContactsDetailView: {screen: ContactsDetailView},
     CreditsView: {screen: CreditsView},
     DictionaryDetailView: {screen: DictionaryDetailView},
     DictionaryView: {screen: DictionaryView},
@@ -69,18 +77,22 @@ export const AppNavigator = StackNavigator(
     JobDetailView: {screen: JobDetailView},
     LegalView: {screen: LegalView},
     MenusView: {screen: MenusView},
-    NewsItemView: {screen: NewsItemView},
     NewsView: {screen: NewsView},
     PrivacyView: {screen: PrivacyView},
     SettingsView: {screen: SettingsView},
-    SISLoginView: {screen: SISLoginView},
+    IconSettingsView: {screen: IconSettingsView},
     SISView: {screen: SISView},
-    // SnapshotsView: {screen: SnapshotsView},
     StreamingView: {screen: StreamingView},
+    KSTOScheduleView: {screen: KSTOScheduleView},
     StudentOrgsDetailView: {screen: StudentOrgsDetailView},
     StudentOrgsView: {screen: StudentOrgsView},
     TransportationView: {screen: TransportationView},
+    OtherModesDetailView: {screen: OtherModesDetailView},
     BusMapView: {screen: BusMapView},
+    CarletonBurtonMenuView: {screen: CarletonBurtonMenuScreen},
+    CarletonLDCMenuView: {screen: CarletonLDCMenuScreen},
+    CarletonWeitzMenuView: {screen: CarletonWeitzMenuScreen},
+    CarletonSaylesMenuView: {screen: CarletonSaylesMenuScreen},
     PrintReleaseView: {screen: PrintReleaseView},
   },
   {

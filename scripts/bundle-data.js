@@ -8,9 +8,18 @@ const convertDataFile = require('./convert-data-file')
 
 const isDir = pth => fs.statSync(pth).isDirectory()
 const isFile = pth => fs.statSync(pth).isFile()
-const readDir = pth => fs.readdirSync(pth).filter(junk.not).filter(entry => !entry.startsWith('_'))
-const findDirsIn = pth => readDir(pth).filter(entry => isDir(path.join(pth, entry)))
-const findFilesIn = pth => readDir(pth).filter(entry => isFile(path.join(pth, entry)))
+
+const readDir = pth =>
+  fs
+    .readdirSync(pth)
+    .filter(junk.not)
+    .filter(entry => !entry.startsWith('_'))
+
+const findDirsIn = pth =>
+  readDir(pth).filter(entry => isDir(path.join(pth, entry)))
+
+const findFilesIn = pth =>
+  readDir(pth).filter(entry => isFile(path.join(pth, entry)))
 
 const args = process.argv.slice(2)
 const fromDir = args[0]
@@ -36,10 +45,15 @@ dirs.forEach(dirname => {
 // Convert these files into JSON equivalents
 const files = findFilesIn(fromDir)
 files.forEach(file => {
+  // Get the absolute paths to the input and output files
   const input = path.join(fromDir, file)
   const output = path.join(toDir, file).replace(/\.(.*)$/, '.json')
   console.log(`convert-data-file ${input} ${output}`)
   console.time(`convert-data-file ${input} ${output}`)
   convertDataFile({fromFile: input, toFile: output})
+  if (file.endsWith('.css')) {
+    const dest = output.replace(/\.json/, '.css')
+    convertDataFile({fromFile: input, toFile: dest, toFileType: 'css'})
+  }
   console.timeEnd(`convert-data-file ${input} ${output}`)
 })

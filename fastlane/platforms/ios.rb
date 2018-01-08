@@ -6,13 +6,35 @@ platform :ios do
 
   desc 'Take screenshots'
   lane :screenshot do
-    snapshot(devices: ['iPhone 7 Plus', 'iPhone 6', 'iPhone 5s'],
+    devices = [
+      'iPhone 7 Plus',
+      'iPhone 6',
+      'iPhone 5s',
+      # 'iPhone 4s',
+      'iPad Pro (9.7-inch)',
+      'iPad Pro (12.9-inch)',
+    ]
+    snapshot(devices: devices,
              languages: ['en-US'],
              scheme: ENV['GYM_SCHEME'],
-             project: ENV['GYM_PROJECT'])
+             project: ENV['GYM_PROJECT'],
+             # concurrent_simulators: false,
+             number_of_retries: 0)
   end
 
-  desc 'Builds the app'
+  desc 'Checks that the app can be built'
+  lane :check_build do
+    propagate_version
+    xcodebuild(
+      build: true,
+      scheme: ENV['GYM_SCHEME'],
+      project: ENV['GYM_PROJECT'],
+      destination: 'generic/platform=iOS',
+      xcargs: 'CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""'
+    )
+  end
+
+  desc 'Builds and exports the app'
   lane :build do
     match(type: 'appstore', readonly: true)
     propagate_version
@@ -29,7 +51,21 @@ platform :ios do
   desc 'Submit a new nightly Beta Build to Testflight'
   lane :nightly do
     build
-    testflight(distribute_external: false)
+    # TestFlight is returning 500 errors when we upload changelogs again.
+    begin
+      testflight(changelog: make_changelog,
+                 distribute_external: false)
+    rescue => error
+      puts 'Changelog failed to upload:'
+      puts error
+    end
+    generate_sourcemap
+    upload_sourcemap_to_bugsnag
+  end
+
+  desc 'Bundle an iOS sourcemap'
+  lane :sourcemap do
+    generate_sourcemap
   end
 
   desc 'Upload dYSM symbols to Bugsnag from Apple'

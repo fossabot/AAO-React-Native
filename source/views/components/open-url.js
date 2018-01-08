@@ -6,26 +6,19 @@ import {tracker} from '../../analytics'
 import SafariView from 'react-native-safari-view'
 import {CustomTabs} from 'react-native-custom-tabs'
 
-let iosOnShowListener = null
-let iosOnDismissListener = null
-function startStatusBarColorChanger() {
-  SafariView.isAvailable()
+const iosOnShowListener = () => StatusBar.setBarStyle('dark-content')
+const iosOnDismissListener = () => StatusBar.setBarStyle('light-content')
+export function startStatusBarColorChanger() {
+  return SafariView.isAvailable()
     .then(() => {
-      iosOnShowListener = SafariView.addEventListener('onShow', () =>
-        StatusBar.setBarStyle('dark-content'),
-      )
-
-      iosOnDismissListener = SafariView.addEventListener('onDismiss', () =>
-        StatusBar.setBarStyle('light-content'),
-      )
+      SafariView.addEventListener('onShow', iosOnShowListener)
+      SafariView.addEventListener('onDismiss', iosOnDismissListener)
     })
     .catch(() => {})
 }
-startStatusBarColorChanger()
 
-// eslint-disable-next-line no-unused-vars
-function stopStatusBarColorChanger() {
-  SafariView.isAvailable()
+export function stopStatusBarColorChanger() {
+  return SafariView.isAvailable()
     .then(() => {
       SafariView.removeEventListener('onShow', iosOnShowListener)
       SafariView.removeEventListener('onDismiss', iosOnDismissListener)
@@ -48,13 +41,10 @@ function genericOpen(url: string) {
 }
 
 function iosOpen(url: string) {
-  return (
-    SafariView.isAvailable()
-      // if it's around, open in safari
-      .then(() => SafariView.show({url}))
-      // fall back to opening in default browser
-      .catch(() => genericOpen(url))
-  )
+  // SafariView.isAvailable throws if it's not available
+  return SafariView.isAvailable()
+    .then(() => SafariView.show({url}))
+    .catch(() => genericOpen(url))
 }
 
 function androidOpen(url: string) {
@@ -66,6 +56,19 @@ function androidOpen(url: string) {
 }
 
 export default function openUrl(url: string) {
+  const protocol = /^(.*?):/.exec(url)
+
+  if (protocol.length) {
+    switch (protocol[1]) {
+      case 'tel':
+        return genericOpen(url)
+      case 'mailto':
+        return genericOpen(url)
+      default:
+        break
+    }
+  }
+
   switch (Platform.OS) {
     case 'android':
       return androidOpen(url)

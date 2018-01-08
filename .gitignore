@@ -69,3 +69,10 @@ docs/
 # android keystores
 android/app/signing.properties
 *.keystore
+
+# vim temp files
+*.swp
+
+# rubygems bundle
+/vendor/bundle/
+/.bundle/

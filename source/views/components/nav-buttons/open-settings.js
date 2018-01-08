@@ -3,7 +3,7 @@
  * Exports a button that opens the Settings screen
  */
 
-import React from 'react'
+import * as React from 'react'
 import {StyleSheet, Platform} from 'react-native'
 import * as c from '../colors'
 import {Touchable} from '../touchable'
@@ -19,12 +19,12 @@ export function OpenSettingsButton({
 }) {
   return (
     <Touchable
-      borderless
+      borderless={true}
       highlight={false}
-      style={[styles.button, buttonStyle]}
       onPress={() => navigation.navigate('SettingsView')}
+      style={[styles.button, buttonStyle]}
     >
-      <Icon style={styles.icon} name="ios-settings" />
+      <Icon name="ios-settings" style={styles.icon} />
     </Touchable>
   )
 }

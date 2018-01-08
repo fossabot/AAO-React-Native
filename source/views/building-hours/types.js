@@ -19,11 +19,11 @@ export type BreakNameEnumType =
   | 'easter'
   | 'summer'
 
-export type SingleBuildingScheduleType = {|
+export type SingleBuildingScheduleType = {
   days: DayOfWeekEnumType[],
   from: string,
   to: string,
-|}
+}
 
 export type NamedBuildingScheduleType = {
   title: 'Hours' | string,
@@ -37,12 +37,14 @@ export type BreakScheduleContainerType = {
   [key: BreakNameEnumType]: NamedBuildingScheduleType[],
 }
 
-export type BuildingType = {|
+export type BuildingType = {
   name: string,
   subtitle?: string,
   abbreviation?: string,
+  isNotice?: boolean,
+  noticeMessage?: string,
   image?: string,
   category: string,
   schedule: NamedBuildingScheduleType[],
   breakSchedule?: BreakScheduleContainerType,
-|}
+}

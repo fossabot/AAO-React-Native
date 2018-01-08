@@ -1,36 +1,51 @@
 // @flow
 
-import React from 'react'
-import {StyleSheet, Image} from 'react-native'
+import * as React from 'react'
+import {StyleSheet, Image, Alert} from 'react-native'
 import {Column, Row} from '../components/layout'
 import {ListRow, Detail, Title} from '../components/list'
 import type {StoryType} from './types'
 
-type NewsRowPropsType = {
-  onPress: () => any,
+type Props = {
+  onPress: string => any,
   story: StoryType,
+  thumbnail: number,
 }
 
-export function NewsRow({onPress, story}: NewsRowPropsType) {
-  return (
-    <ListRow onPress={onPress} arrowPosition="top">
-      <Row alignItems="center">
-        <Column flex={1}>
-          <Title lines={1}>{story.title}</Title>
-          <Detail lines={2}>{story.excerpt}</Detail>
-        </Column>
-        {story.featuredImage
-          ? <Image source={{uri: story.featuredImage}} style={styles.image} />
-          : null}
-      </Row>
-    </ListRow>
-  )
+export class NewsRow extends React.PureComponent<Props> {
+  _onPress = () => {
+    if (!this.props.story.link) {
+      Alert.alert('There is nowhere to go for this story')
+      return
+    }
+    this.props.onPress(this.props.story.link)
+  }
+
+  render() {
+    const {story} = this.props
+    const thumb = story.featuredImage
+      ? {uri: story.featuredImage}
+      : this.props.thumbnail
+
+    return (
+      <ListRow arrowPosition="top" onPress={this._onPress}>
+        <Row alignItems="center">
+          <Image source={thumb} style={styles.image} />
+          <Column flex={1}>
+            <Title lines={1}>{story.title}</Title>
+            <Detail lines={2}>{story.excerpt}</Detail>
+          </Column>
+        </Row>
+      </ListRow>
+    )
+  }
 }
 
 const styles = StyleSheet.create({
   image: {
-    marginLeft: 8,
-    height: 50,
-    width: 50,
+    borderRadius: 5,
+    marginRight: 15,
+    height: 70,
+    width: 70,
   },
 })

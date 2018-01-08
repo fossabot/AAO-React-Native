@@ -3,7 +3,7 @@
  * Exports a button that closes the current overlay screen
  */
 
-import React from 'react'
+import * as React from 'react'
 import {Text, Platform, StyleSheet} from 'react-native'
 import {Touchable} from '../touchable'
 import type {NavType} from '../../types'
@@ -18,10 +18,10 @@ export function CloseScreenButton({
 }) {
   return (
     <Touchable
-      borderless
+      borderless={true}
       highlight={false}
-      style={[commonStyles.button, buttonStyle]}
       onPress={() => navigation.goBack()}
+      style={[commonStyles.button, buttonStyle]}
     >
       <Text style={[commonStyles.text, styles.text]}>Done</Text>
     </Touchable>

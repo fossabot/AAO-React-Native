@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {StyleSheet, Platform, View} from 'react-native'
 import {Touchable} from '../touchable'
 import * as c from '../colors'
@@ -30,7 +30,11 @@ type ToolbarPropsType = {
 export function Toolbar({children, onPress}: ToolbarPropsType) {
   return (
     <View style={toolbarStyles.shadow}>
-      <Touchable onPress={onPress} style={toolbarStyles.container} borderless>
+      <Touchable
+        borderless={true}
+        onPress={onPress}
+        style={toolbarStyles.container}
+      >
         {children}
       </Touchable>
     </View>

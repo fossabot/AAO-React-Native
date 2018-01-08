@@ -1,19 +1,29 @@
-/**
- * @flow
- * Reducer for state for the homescreen
- */
+// @flow
 
 import {allViewNames as defaultViewOrder} from '../../views/views'
 import difference from 'lodash/difference'
 import {trackHomescreenOrder} from '../../analytics'
 import * as storage from '../../lib/storage'
+import {type ReduxState} from '../index'
 
-export const SAVE_HOMESCREEN_ORDER = 'homescreen/SAVE_HOMESCREEN_ORDER'
+type Dispatch<A: Action> = (action: A | Promise<A> | ThunkAction<A>) => any
+type GetState = () => ReduxState
+type ThunkAction<A: Action> = (dispatch: Dispatch<A>, getState: GetState) => any
+type Action =
+  | SaveViewOrderAction
+  | SaveDisabledViewsAction
+  | ToggleViewDisabledAction
 
-export const updateViewOrder = (
-  currentOrder: string[],
-  defaultOrder: string[] = defaultViewOrder,
-) => {
+const SAVE_HOMESCREEN_ORDER = 'homescreen/SAVE_HOMESCREEN_ORDER'
+const SAVE_DISABLED_VIEWS = 'homescreen/SAVE_DISABLED_VIEWS'
+const TOGGLE_VIEW_DISABLED = 'homescreen/TOGGLE_VIEW_DISABLED'
+
+type ViewName = string
+
+export function updateViewOrder(
+  currentOrder: Array<ViewName>,
+  defaultOrder: Array<ViewName> = defaultViewOrder,
+): Array<ViewName> {
   currentOrder = currentOrder || []
 
   // lodash/difference: Creates an array of array values _not included_ in the
@@ -33,7 +43,7 @@ export const updateViewOrder = (
   return currentOrder
 }
 
-export const loadHomescreenOrder = async () => {
+export async function loadHomescreenOrder() {
   // get the saved list from persistent storage
   let savedOrder = await storage.getHomescreenOrder()
 
@@ -44,29 +54,91 @@ export const loadHomescreenOrder = async () => {
   return saveHomescreenOrder(order, {noTrack: true})
 }
 
-export const saveHomescreenOrder = (
-  order: string[],
+type SaveViewOrderAction = {
+  type: 'homescreen/SAVE_HOMESCREEN_ORDER',
+  payload: Array<ViewName>,
+}
+export function saveHomescreenOrder(
+  order: Array<ViewName>,
   options: {noTrack?: boolean} = {},
-) => {
-  options.noTrack || trackHomescreenOrder(order)
+): SaveViewOrderAction {
+  if (!options.noTrack) {
+    trackHomescreenOrder(order)
+  }
+
   storage.setHomescreenOrder(order)
   return {type: SAVE_HOMESCREEN_ORDER, payload: order}
 }
 
-const initialHomescreenState = {
-  order: [],
+type SaveDisabledViewsAction = {
+  type: 'homescreen/SAVE_DISABLED_VIEWS',
+  payload: Array<ViewName>,
 }
-export function homescreen(
-  state: Object = initialHomescreenState,
-  action: Object,
-) {
-  const {type, payload} = action
+export function saveDisabledViews(
+  disabledViews: Array<ViewName>,
+): SaveDisabledViewsAction {
+  storage.setDisabledViews(disabledViews)
+  return {type: SAVE_DISABLED_VIEWS, payload: disabledViews}
+}
+export async function loadDisabledViews() {
+  let disabledViews = await storage.getDisabledViews()
 
-  switch (type) {
+  if (disabledViews.length === 0) {
+    disabledViews = []
+  }
+
+  disabledViews = disabledViews.filter(view => defaultViewOrder.includes(view))
+
+  return saveDisabledViews(disabledViews)
+}
+
+type ToggleViewDisabledAction = {
+  type: 'homescreen/TOGGLE_VIEW_DISABLED',
+  payload: Array<string>,
+}
+export function toggleViewDisabled(
+  viewName: string,
+): ThunkAction<ToggleViewDisabledAction> {
+  return (dispatch, getState) => {
+    const state = getState()
+
+    const currentDisabledViews = state.homescreen
+      ? state.homescreen.inactiveViews
+      : []
+    const newDisabledViews = currentDisabledViews.includes(viewName)
+      ? currentDisabledViews.filter(name => name !== viewName)
+      : [...currentDisabledViews, viewName]
+
+    // TODO: remove saving logic from reducers
+    storage.setDisabledViews(newDisabledViews)
+
+    dispatch({type: TOGGLE_VIEW_DISABLED, payload: newDisabledViews})
+  }
+}
+
+export type State = {|
+  order: Array<ViewName>,
+  inactiveViews: Array<ViewName>,
+|}
+
+const initialState: State = {
+  order: [],
+  inactiveViews: [],
+}
+
+export function homescreen(state: State = initialState, action: Action) {
+  switch (action.type) {
     case SAVE_HOMESCREEN_ORDER: {
-      return {...state, order: payload}
+      return {...state, order: action.payload}
     }
-    default:
+    case SAVE_DISABLED_VIEWS: {
+      return {...state, inactiveViews: action.payload}
+    }
+    case TOGGLE_VIEW_DISABLED: {
+      return {...state, inactiveViews: action.payload}
+    }
+    default: {
       return state
+    }
   }
 }

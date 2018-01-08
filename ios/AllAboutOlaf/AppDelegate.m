@@ -9,6 +9,7 @@
 
 #import "AppDelegate.h"
 #import <BugsnagReactNative/BugsnagReactNative.h>
+#import <AVFoundation/AVFoundation.h>
 
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
@@ -23,7 +24,7 @@
 {
   NSURL *jsCodeLocation;
 
-  jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios"
+  jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"
                                                                     fallbackResource:nil];
 #ifndef DEBUG
   [BugsnagReactNative start];
@@ -47,13 +48,17 @@
   rootView.loadingView = loadingViewController.view;
 
   self.oneSignal = [[RCTOneSignal alloc] initWithLaunchOptions:launchOptions
-                                                         appId:@"aa46a500-ab1c-4127-b9ff-e7373da3ce35"];
+                                                         appId:@"aa46a500-ab1c-4127-b9ff-e7373da3ce35"
+                                                      settings:@{kOSSettingsKeyAutoPrompt: @false}];
 
   // set up the requests cacher
   NSURLCache *URLCache = [[NSURLCache alloc] initWithMemoryCapacity:4 * 1024 * 1024   // 4 MiB
                                                        diskCapacity:20 * 1024 * 1024  // 20 MiB
                                                            diskPath:nil];
   [NSURLCache setSharedURLCache:URLCache];
+
+  // ignore vibrate/silent switch when playing audio
+  [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryPlayback error: nil];
 
   return YES;
 }

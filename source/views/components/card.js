@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {View, Text, StyleSheet} from 'react-native'
 import * as c from './colors'
 
@@ -41,21 +41,21 @@ export function Card({
 }) {
   return (
     <View style={[cardStyles.card, style]}>
-      <View style={cardStyles.title}>
-        <Text selectable={true} style={cardStyles.titleText}>{header}</Text>
-      </View>
+      {header ? (
+        <View style={cardStyles.title}>
+          <Text selectable={true} style={cardStyles.titleText}>
+            {header}
+          </Text>
+        </View>
+      ) : null}
 
-      <View>
-        {children}
-      </View>
+      <View>{children}</View>
 
-      {footer
-        ? <View style={cardStyles.footer}>
-            <Text selectable={true}>
-              {footer}
-            </Text>
-          </View>
-        : null}
+      {footer ? (
+        <View style={cardStyles.footer}>
+          <Text selectable={true}>{footer}</Text>
+        </View>
+      ) : null}
     </View>
   )
 }

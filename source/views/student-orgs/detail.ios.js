@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {ScrollView, Text, View, StyleSheet, Linking} from 'react-native'
 import moment from 'moment'
 import {Cell, Section, TableView} from 'react-native-tableview-simple'
@@ -7,7 +7,7 @@ import * as c from '../components/colors'
 import type {StudentOrgType} from './types'
 import type {TopLevelViewPropsType} from '../types'
 import openUrl from '../components/open-url'
-import cleanOrg from './clean-org'
+import {cleanOrg, showNameOrEmail} from './util'
 
 const styles = StyleSheet.create({
   name: {
@@ -47,16 +47,16 @@ const styles = StyleSheet.create({
   },
 })
 
-export class StudentOrgsDetailView extends React.Component {
+type Props = TopLevelViewPropsType & {
+  navigation: {state: {params: {org: StudentOrgType}}},
+}
+
+export class StudentOrgsDetailView extends React.PureComponent<Props> {
   static navigationOptions = ({navigation}) => {
     const {org} = navigation.state.params
     return {
       title: org.name,
     }
-  }
-
-  props: TopLevelViewPropsType & {
-    navigation: {state: {params: {org: StudentOrgType}}},
   }
 
   render() {
@@ -74,76 +74,77 @@ export class StudentOrgsDetailView extends React.Component {
     return (
       <ScrollView>
         <TableView>
-          <Text selectable={true} style={styles.name}>{orgName}</Text>
+          <Text selectable={true} style={styles.name}>
+            {orgName}
+          </Text>
 
-          {category
-            ? <Section header="CATEGORY">
-                <Cell cellStyle="Basic" title={category} />
-              </Section>
-            : null}
+          {category ? (
+            <Section header="CATEGORY">
+              <Cell cellStyle="Basic" title={category} />
+            </Section>
+          ) : null}
 
-          {meetings
-            ? <Section header="MEETINGS">
+          {meetings ? (
+            <Section header="MEETINGS">
+              <Cell
+                cellContentView={
+                  <Text style={styles.meetings}>{meetings}</Text>
+                }
+                cellStyle="Basic"
+              />
+            </Section>
+          ) : null}
+
+          {website ? (
+            <Section header="WEBSITE">
+              <Cell
+                accessory="DisclosureIndicator"
+                cellStyle="Basic"
+                onPress={() => openUrl(website)}
+                title={website}
+              />
+            </Section>
+          ) : null}
+
+          {contacts.length ? (
+            <Section header="CONTACT">
+              {contacts.map((c, i) => (
                 <Cell
-                  cellContentView={
-                    <Text style={styles.meetings}>{meetings}</Text>
-                  }
-                  cellStyle="Basic"
-                />
-              </Section>
-            : null}
-
-          {website
-            ? <Section header="WEBSITE">
-                <Cell
-                  cellStyle="Basic"
+                  key={i}
                   accessory="DisclosureIndicator"
-                  title={website}
-                  onPress={() => openUrl(website)}
+                  cellStyle={c.title ? 'Subtitle' : 'Basic'}
+                  detail={c.title}
+                  onPress={() => Linking.openURL(`mailto:${c.email}`)}
+                  title={showNameOrEmail(c)}
                 />
-              </Section>
-            : null}
+              ))}
+            </Section>
+          ) : null}
 
-          {contacts.length
-            ? <Section header="CONTACT">
-                {contacts.map((c, i) =>
-                  <Cell
-                    key={i}
-                    cellStyle={c.title ? 'Subtitle' : 'Basic'}
-                    accessory="DisclosureIndicator"
-                    title={`${c.firstName} ${c.lastName}`}
-                    detail={c.title}
-                    onPress={() => Linking.openURL(`mailto:${c.email}`)}
-                  />,
-                )}
-              </Section>
-            : null}
+          {advisors.length ? (
+            <Section header={advisors.length === 1 ? 'ADVISOR' : 'ADVISORS'}>
+              {advisors.map((c, i) => (
+                <Cell
+                  key={i}
+                  accessory="DisclosureIndicator"
+                  cellStyle="Basic"
+                  onPress={() => Linking.openURL(`mailto:${c.email}`)}
+                  title={c.name}
+                />
+              ))}
+            </Section>
+          ) : null}
 
-          {advisors.length
-            ? <Section header={advisors.length === 1 ? 'ADVISOR' : 'ADVISORS'}>
-                {advisors.map((c, i) =>
-                  <Cell
-                    key={i}
-                    cellStyle="Basic"
-                    accessory="DisclosureIndicator"
-                    title={c.name}
-                    onPress={() => Linking.openURL(`mailto:${c.email}`)}
-                  />,
-                )}
-              </Section>
-            : null}
-
-          {description
-            ? <Section header="DESCRIPTION">
-                <View style={styles.description}>
-                  <Text style={styles.descriptionText}>{description}</Text>
-                </View>
-              </Section>
-            : null}
+          {description ? (
+            <Section header="DESCRIPTION">
+              <View style={styles.description}>
+                <Text style={styles.descriptionText}>{description}</Text>
+              </View>
+            </Section>
+          ) : null}
 
           <Text selectable={true} style={[styles.footer, styles.lastUpdated]}>
-            Last updated:
-            {' '}
+            Last updated:{' '}
             {moment(orgLastUpdated, 'MMMM, DD YYYY HH:mm:ss').calendar()}
           </Text>
 

@@ -1,23 +1,17 @@
-/**
- * @flow
- *
- * All About Olaf
- * Student Work page
- */
+// @flow
 
-import React from 'react'
-import {StyleSheet, Text} from 'react-native'
+import * as React from 'react'
+import {StyleSheet, SectionList} from 'react-native'
 import {TabBarIcon} from '../../components/tabbar-icon'
 import type {TopLevelViewPropsType} from '../../types'
 import * as c from '../../components/colors'
-import SimpleListView from '../../components/listview'
 import {ListSeparator, ListSectionHeader} from '../../components/list'
 import {tracker} from '../../../analytics'
 import bugsnag from '../../../bugsnag'
 import {NoticeView} from '../../components/notice'
 import LoadingView from '../../components/loading'
 import delay from 'delay'
-import size from 'lodash/size'
+import toPairs from 'lodash/toPairs'
 import orderBy from 'lodash/orderBy'
 import groupBy from 'lodash/groupBy'
 import {toLaxTitleCase as titleCase} from 'titlecase'
@@ -33,30 +27,34 @@ const styles = StyleSheet.create({
   },
 })
 
-export default class StudentWorkView extends React.Component {
+type Props = TopLevelViewPropsType
+
+type State = {
+  jobs: Array<{title: string, data: Array<JobType>}>,
+  loading: boolean,
+  refreshing: boolean,
+  error: boolean,
+}
+
+export default class StudentWorkView extends React.PureComponent<Props, State> {
   static navigationOptions = {
     headerBackTitle: 'Open Jobs',
     tabBarLabel: 'Open Jobs',
     tabBarIcon: TabBarIcon('briefcase'),
   }
 
-  state: {
-    jobs: {[key: string]: JobType[]},
-    loading: boolean,
-    refreshing: boolean,
-    error: boolean,
-  } = {
-    jobs: {},
-    loading: false,
+  state = {
+    jobs: [],
+    loading: true,
     refreshing: false,
     error: false,
   }
 
   componentWillMount() {
-    this.refresh()
+    this.fetchData().then(() => {
+      this.setState(() => ({loading: false}))
+    })
   }
-
-  props: TopLevelViewPropsType
 
   fetchData = async () => {
     try {
@@ -73,73 +71,74 @@ export default class StudentWorkView extends React.Component {
         processed,
         [
           j => j.type, // sort any groups with the same sort index alphabetically
+          j => j.office, // sort all jobs with the same office
           j => j.lastModified, // sort all jobs by date-last-modified
         ],
         ['desc', 'asc'],
       )
 
-      this.setState(() => ({jobs: groupBy(sorted, j => j.type)}))
+      const grouped = groupBy(sorted, j => j.type)
+      const mapped = toPairs(grouped).map(([title, data]) => ({title, data}))
+      this.setState(() => ({jobs: mapped}))
     } catch (err) {
       tracker.trackException(err.message)
       bugsnag.notify(err)
       this.setState(() => ({error: true}))
       console.error(err)
     }
-
-    this.setState(() => ({loading: true}))
   }
 
-  refresh = async () => {
+  refresh = async (): any => {
     const start = Date.now()
     this.setState(() => ({refreshing: true}))
 
     await this.fetchData()
 
     // wait 0.5 seconds – if we let it go at normal speed, it feels broken.
-    const elapsed = start - Date.now()
+    const elapsed = Date.now() - start
     if (elapsed < 500) {
       await delay(500 - elapsed)
     }
     this.setState(() => ({refreshing: false}))
   }
 
-  onPressJob = (title: string, job: JobType) => {
+  onPressJob = (job: JobType) => {
     this.props.navigation.navigate('JobDetailView', {job})
   }
 
-  renderSeparator = (sectionId: string, rowId: string) => {
-    return <ListSeparator key={`${sectionId}-${rowId}`} />
-  }
+  keyExtractor = (item: JobType, index: number) => index.toString()
 
-  renderSectionHeader = (data: any, id: string) => {
-    return <ListSectionHeader title={id} />
-  }
+  renderSectionHeader = ({section: {title}}: any) => (
+    <ListSectionHeader title={title} />
+  )
+
+  renderItem = ({item}: {item: JobType}) => (
+    <JobRow job={item} onPress={this.onPressJob} />
+  )
 
   render() {
     if (this.state.error) {
-      return <Text selectable={true}>{this.state.error}</Text>
+      return <NoticeView text="Could not get open jobs." />
     }
 
-    if (!this.state.loading) {
+    if (this.state.loading) {
       return <LoadingView />
     }
 
-    if (!size(this.state.jobs)) {
-      return <NoticeView text="There are no open job postings." />
-    }
-
     return (
-      <SimpleListView
-        style={styles.listContainer}
-        data={this.state.jobs}
-        renderSectionHeader={this.renderSectionHeader}
-        renderSeparator={this.renderSeparator}
-        refreshing={this.state.refreshing}
+      <SectionList
+        ItemSeparatorComponent={ListSeparator}
+        ListEmptyComponent={
+          <NoticeView text="There are no open job postings." />
+        }
+        keyExtractor={this.keyExtractor}
         onRefresh={this.refresh}
-      >
-        {(job: JobType) =>
-          <JobRow onPress={() => this.onPressJob(job.title, job)} job={job} />}
-      </SimpleListView>
+        refreshing={this.state.refreshing}
+        renderItem={this.renderItem}
+        renderSectionHeader={this.renderSectionHeader}
+        sections={(this.state.jobs: any)}
+        style={styles.listContainer}
+      />
     )
   }
 }

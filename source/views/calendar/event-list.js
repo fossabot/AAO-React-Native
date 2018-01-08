@@ -1,36 +1,35 @@
 // @flow
-/**
- * All About Olaf
- * List of calendar events
- */
 
-import React from 'react'
-import {StyleSheet} from 'react-native'
+import * as React from 'react'
+import {StyleSheet, SectionList} from 'react-native'
 import * as c from '../components/colors'
-import SimpleListView from '../components/listview'
+import toPairs from 'lodash/toPairs'
 import type {TopLevelViewPropsType} from '../types'
-import type {EventType} from './types'
+import type {EventType, PoweredBy} from './types'
 import groupBy from 'lodash/groupBy'
-import size from 'lodash/size'
 import moment from 'moment-timezone'
 import {ListSeparator, ListSectionHeader} from '../components/list'
 import {NoticeView} from '../components/notice'
 import EventRow from './event-row'
+import {cleanEvent} from './clean-event'
 
-export class EventList extends React.Component {
-  props: TopLevelViewPropsType & {
-    events: EventType[],
-    message: ?string,
-    refreshing: boolean,
-    onRefresh: () => any,
-    now: moment,
-  }
+const FullWidthSeparator = props => (
+  <ListSeparator fullWidth={true} {...props} />
+)
 
-  groupEvents = (
-    events: EventType[],
-    now: moment,
-  ): {[key: string]: EventType[]} => {
-    return groupBy(events, event => {
+type Props = TopLevelViewPropsType & {
+  events: EventType[],
+  message: ?string,
+  refreshing: boolean,
+  onRefresh: () => any,
+  now: moment,
+  poweredBy: ?PoweredBy,
+}
+
+export class EventList extends React.PureComponent<Props> {
+  groupEvents = (events: EventType[], now: moment): any => {
+    // the proper return type is $ReadOnlyArray<{title: string, data: $ReadOnlyArray<EventType>}>
+    const grouped = groupBy(events, event => {
       if (event.isOngoing) {
         return 'Ongoing'
       }
@@ -39,49 +38,49 @@ export class EventList extends React.Component {
       }
       return event.startTime.format('ddd  MMM Do') // google returns events in CST
     })
+
+    return toPairs(grouped).map(([key, value]) => ({
+      title: key,
+      data: value,
+    }))
   }
 
-  onPressEvent = (title: string, event: EventType) => {
-    this.props.navigation.navigate('EventDetailView', {event})
+  onPressEvent = (event: EventType) => {
+    event = cleanEvent(event)
+    this.props.navigation.navigate('EventDetailView', {
+      event,
+      poweredBy: this.props.poweredBy,
+    })
   }
 
-  renderSectionHeader = (
-    sectionData: EventType[],
-    sectionIdentifier: string,
-  ) => {
-    return <ListSectionHeader title={sectionIdentifier} spacing={{left: 10}} />
-  }
+  renderSectionHeader = ({section: {title}}: any) => (
+    // the proper type is ({section: {title}}: {section: {title: string}})
+    <ListSectionHeader spacing={{left: 10}} title={title} />
+  )
 
-  renderSeparator = (sectionID: any, rowID: any) => {
-    return <ListSeparator fullWidth={true} key={`${sectionID}-${rowID}`} />
-  }
+  renderItem = ({item}: {item: EventType}) => (
+    <EventRow event={item} onPress={this.onPressEvent} />
+  )
+
+  keyExtractor = (item: EventType, index: number) => index.toString()
 
   render() {
     if (this.props.message) {
       return <NoticeView text={this.props.message} />
     }
 
-    if (!size(this.props.events)) {
-      return <NoticeView text="No events." />
-    }
-
-    const events = this.groupEvents(this.props.events, this.props.now)
-
     return (
-      <SimpleListView
-        style={styles.container}
-        data={events}
-        renderSectionHeader={this.renderSectionHeader}
-        renderSeparator={this.renderSeparator}
-        refreshing={this.props.refreshing}
+      <SectionList
+        ItemSeparatorComponent={FullWidthSeparator}
+        ListEmptyComponent={<NoticeView text="No events." />}
+        keyExtractor={this.keyExtractor}
         onRefresh={this.props.onRefresh}
-      >
-        {(event: EventType) =>
-          <EventRow
-            onPress={() => this.onPressEvent(event.summary, event)}
-            event={event}
-          />}
-      </SimpleListView>
+        refreshing={this.props.refreshing}
+        renderItem={this.renderItem}
+        renderSectionHeader={this.renderSectionHeader}
+        sections={this.groupEvents(this.props.events, this.props.now)}
+        style={styles.container}
+      />
     )
   }
 }
