@@ -17,6 +17,8 @@ import {
 } from '../components/list'
 import type {TopLevelViewPropsType} from '../types'
 import delay from 'delay'
+import toPairs from 'lodash/toPairs'
+import groupBy from 'lodash/groupBy'
 
 const styles = StyleSheet.create({
   list: {},
@@ -93,10 +95,27 @@ class PrintReleaseView extends React.PureComponent<Props> {
       )
     }
 
+    const groupedByBuilding = toPairs(
+      groupBy(
+        this.props.printers,
+        j =>
+          !j.location
+            ? 'Unknown Building'
+            : /^[A-Z]+ \d+/.test(j.location)
+              ? j.location.split(/\s+/)[0]
+              : j.location,
+      ),
+    ).map(([title, data]) => ({title, data}))
+
+    groupedByBuilding.sort(
+      (a, b) =>
+        a.title === '' && b.title !== '' ? 1 : a.title.localeCompare(b.title),
+    )
+
     const grouped = this.props.printers.length ? [
       {title: 'Recent', data: this.props.recentPrinters},
       {title: 'Popular', data: this.props.popularPrinters},
-      {title: 'All Printers', data: this.props.printers},
+      ...groupedByBuilding,
     ] : []
 
     return (
