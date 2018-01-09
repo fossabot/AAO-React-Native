@@ -2,12 +2,11 @@
 
 import React from 'react'
 import {FlatList, StyleSheet, View, Text, Button} from 'react-native'
-import {TabBarIcon} from '../components/tabbar-icon'
 import {connect} from 'react-redux'
 import {type ReduxState} from '../../flux'
 import {ListEmpty} from '../components/list'
-import {updatePrinters, updatePrintJobs} from '../../flux/parts/stoprint'
-import type {PrintJob, Printer} from './types'
+import {updatePrintJobs} from '../../flux/parts/stoprint'
+import type {PrintJob} from './types'
 import {
   ListRow,
   ListSeparator,
@@ -25,7 +24,6 @@ const styles = StyleSheet.create({
 type ReactProps = TopLevelViewPropsType
 
 type ReduxStateProps = {
-  printers: Array<Printer>,
   jobs: Array<PrintJob>,
   error: ?string,
   loading: boolean,
@@ -33,7 +31,6 @@ type ReduxStateProps = {
 }
 
 type ReduxDispatchProps = {
-  updatePrinters: () => any,
   updatePrintJobs: () => Promise<any>,
 }
 
@@ -41,8 +38,7 @@ type Props = ReactProps & ReduxDispatchProps & ReduxStateProps
 
 class PrintReleaseView extends React.PureComponent<Props> {
   static navigationOptions = {
-    tabBarLabel: 'Print Jobs',
-    tabBarIcon: TabBarIcon('paper'),
+    title: 'Print Jobs',
   }
 
   componentWillMount = () => {
@@ -66,18 +62,18 @@ class PrintReleaseView extends React.PureComponent<Props> {
 
   keyExtractor = (item: PrintJob) => item.id
 
-  openSettings = () => {
-    this.props.navigation.navigate('SettingsView')
-  }
+  openSettings = () => this.props.navigation.navigate('SettingsView')
 
-  releaseJob = (id: any) => {
+  releaseJob = (id: any) =>
     this.props.navigation.navigate('PrintJobReleaseView', {id})
-  }
 
   renderItem = ({item}: {item: PrintJob}) => (
     <ListRow onPress={() => this.releaseJob(item.id)}>
       <Title>{item.documentName}</Title>
-      <Detail>{item.usageCostFormatted} • {item.totalPages} pages • {item.statusFormatted} • {item.grayscaleFormatted}</Detail>
+      <Detail>
+        {item.usageCostFormatted} • {item.totalPages} pages •{' '}
+        {item.statusFormatted} • {item.grayscaleFormatted}
+      </Detail>
     </ListRow>
   )
 
@@ -112,19 +108,15 @@ class PrintReleaseView extends React.PureComponent<Props> {
 
 function mapStateToProps(state: ReduxState): ReduxStateProps {
   return {
-    printers: state.stoprint ? state.stoprint.printers : [],
     jobs: state.stoprint ? state.stoprint.jobs : [],
     error: state.stoprint ? state.stoprint.error : null,
-    loading: state.stoprint
-      ? state.stoprint.loadingJobs || state.stoprint.loadingPrinters
-      : false,
+    loading: state.stoprint ? state.stoprint.loadingJobs : false,
     loginState: state.settings ? state.settings.loginState : 'logged-out',
   }
 }
 
 function mapDispatchToProps(dispatch): ReduxDispatchProps {
   return {
-    updatePrinters: () => dispatch(updatePrinters()),
     updatePrintJobs: () => dispatch(updatePrintJobs()),
   }
 }

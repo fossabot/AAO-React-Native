@@ -1,13 +1,12 @@
 // @flow
 
 import React from 'react'
-import {SectionList, StyleSheet, View, Text, Button} from 'react-native'
+import {SectionList, StyleSheet} from 'react-native'
 import {connect} from 'react-redux'
-import {TabBarIcon} from '../components/tabbar-icon'
 import {type ReduxState} from '../../flux'
 import {ListEmpty} from '../components/list'
-import {updatePrinters, updatePrintJobs} from '../../flux/parts/stoprint'
-import type {PrintJob, Printer} from './types'
+import {updatePrinters} from '../../flux/parts/stoprint'
+import type {Printer} from './types'
 import {
   ListRow,
   ListSeparator,
@@ -30,23 +29,19 @@ type ReduxStateProps = {
   +printers: Array<Printer>,
   +recentPrinters: Array<Printer>,
   +popularPrinters: Array<Printer>,
-  +jobs: Array<PrintJob>,
   +error: ?string,
   +loading: boolean,
-  +loginState: string,
 }
 
 type ReduxDispatchProps = {
   updatePrinters: () => any,
-  updatePrintJobs: () => Promise<any>,
 }
 
 type Props = ReactProps & ReduxDispatchProps & ReduxStateProps
 
 class PrintReleaseView extends React.PureComponent<Props> {
   static navigationOptions = {
-    tabBarLabel: 'Printers',
-    tabBarIcon: TabBarIcon('print'),
+    title: 'Printers',
   }
 
   componentWillMount = () => {
@@ -70,12 +65,11 @@ class PrintReleaseView extends React.PureComponent<Props> {
 
   keyExtractor = (item: Printer) => item.printerName
 
-  openSettings = () => {
-    this.props.navigation.navigate('SettingsView')
-  }
+  openPrintConfirmation = () =>
+    this.props.navigation.navigate('PrintJobReleaseConfirmationView')
 
   renderItem = ({item}: {item: Printer}) => (
-    <ListRow>
+    <ListRow onPress={this.openPrintConfirmation}>
       <Title>{item.printerName}</Title>
       <Detail>{item.location}</Detail>
     </ListRow>
@@ -86,37 +80,36 @@ class PrintReleaseView extends React.PureComponent<Props> {
   )
 
   render() {
-    if (this.props.loginState !== 'logged-in') {
-      return (
-        <View>
-          <Text>You are not logged in.</Text>
-          <Button onPress={this.openSettings} title="Open Settings" />
-        </View>
-      )
-    }
+    const allWithLocations = this.props.printers.map(j => ({
+      ...j,
+      location: j.location || 'Unknown Building',
+    }))
 
-    const groupedByBuilding = toPairs(
-      groupBy(
-        this.props.printers,
-        j =>
-          !j.location
-            ? 'Unknown Building'
-            : /^[A-Z]+ \d+/.test(j.location)
-              ? j.location.split(/\s+/)[0]
-              : j.location,
-      ),
-    ).map(([title, data]) => ({title, data}))
+    const allGrouped = groupBy(
+      allWithLocations,
+      j =>
+        /^[A-Z]+ \d+/.test(j.location)
+          ? j.location.split(/\s+/)[0]
+          : j.location,
+    )
+
+    const groupedByBuilding = toPairs(allGrouped).map(([title, data]) => ({
+      title,
+      data,
+    }))
 
     groupedByBuilding.sort(
       (a, b) =>
         a.title === '' && b.title !== '' ? 1 : a.title.localeCompare(b.title),
     )
 
-    const grouped = this.props.printers.length ? [
-      {title: 'Recent', data: this.props.recentPrinters},
-      {title: 'Popular', data: this.props.popularPrinters},
-      ...groupedByBuilding,
-    ] : []
+    const grouped = this.props.printers.length
+      ? [
+          {title: 'Recent', data: this.props.recentPrinters},
+          {title: 'Popular', data: this.props.popularPrinters},
+          ...groupedByBuilding,
+        ]
+      : []
 
     return (
       <SectionList
@@ -139,19 +132,14 @@ function mapStateToProps(state: ReduxState): ReduxStateProps {
     printers: state.stoprint ? state.stoprint.printers : [],
     recentPrinters: state.stoprint ? state.stoprint.recentPrinters : [],
     popularPrinters: state.stoprint ? state.stoprint.popularPrinters : [],
-    jobs: state.stoprint ? state.stoprint.jobs : [],
     error: state.stoprint ? state.stoprint.error : null,
-    loading: state.stoprint
-      ? state.stoprint.loadingJobs || state.stoprint.loadingPrinters
-      : false,
-    loginState: state.settings ? state.settings.loginState : 'logged-out',
+    loading: state.stoprint ? state.stoprint.loadingPrinters : false,
   }
 }
 
 function mapDispatchToProps(dispatch): ReduxDispatchProps {
   return {
     updatePrinters: () => dispatch(updatePrinters()),
-    updatePrintJobs: () => dispatch(updatePrintJobs()),
   }
 }
 
