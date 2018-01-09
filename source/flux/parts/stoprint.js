@@ -1,11 +1,16 @@
 // @flow
 
 import {loadLoginCredentials} from '../../lib/login'
-import buildFormData from '../../lib/formdata'
 import querystring from 'querystring'
 import {encode} from 'base-64'
 import {type ReduxState} from '../index'
-import type {PrintJob, Printer} from '../../views/stoprint/types'
+import type {
+  PrintJob,
+  Printer,
+  RecentPopularPrintersResponse as RecentPrinters,
+} from '../../views/stoprint/types'
+
+const PAPERCUT = 'https://papercut.stolaf.edu:9192/rpc/api/rest/internal'
 
 type Dispatch<A: Action> = (action: A | Promise<A> | ThunkAction<A>) => any
 type GetState = () => ReduxState
@@ -30,7 +35,11 @@ type UpdateAllPrintersFailureAction = {
 
 type UpdateAllPrintersSuccessAction = {
   type: 'stoprint/UPDATE_ALL_PRINTERS/SUCCESS',
-  payload: Array<Printer>,
+  payload: {
+    allPrinters: Array<Printer>,
+    popularPrinters: Array<Printer>,
+    recentPrinters: Array<Printer>,
+  },
 }
 
 type UpdateAllPrintersAction =
@@ -57,10 +66,13 @@ type UpdatePrintJobsAction =
   | UpdatePrintJobsFailureAction
   | UpdatePrintJobsStartAction
 
-async function logIn(username: string, password: string): Promise<'success' | string> {
+async function logIn(
+  username: string,
+  password: string,
+): Promise<'success' | string> {
   try {
     const now = new Date().getTime()
-    const url = `https://papercut.stolaf.edu/rpc/api/rest/internal/webclient/users/${username}/log-in?nocache=${now}`
+    const url = `${PAPERCUT}/webclient/users/${username}/log-in?nocache=${now}`
     const headers = new Headers({'Content-Type': 'application/x-www-form-urlencoded'})
     const body = querystring.stringify({password: encode(password)})
     const result = await fetchJson(url, {method: 'POST', body, headers})
@@ -76,6 +88,12 @@ async function logIn(username: string, password: string): Promise<'success' | st
   }
 }
 
+const mobileRelease = `${PAPERCUT}/mobilerelease/api`
+const fetchAllPrinters = (username: string): Promise<Array<Printer>> =>
+  fetchJson(`${mobileRelease}/all-printers?username=${username}`)
+const fetchRecentPrinters = (username: string): Promise<RecentPrinters> =>
+  fetchJson(`${mobileRelease}/recent-popular-printers?username=${username}`)
+
 export function updatePrinters(): ThunkAction<UpdateAllPrintersAction> {
   return async dispatch => {
     const {username, password} = await loadLoginCredentials()
@@ -90,10 +108,17 @@ export function updatePrinters(): ThunkAction<UpdateAllPrintersAction> {
       return dispatch({type: UPDATE_ALL_PRINTERS_FAILURE, payload: successMsg})
     }
 
-    const url = `https://papercut.stolaf.edu:9192/rpc/api/rest/internal/mobilerelease/api/all-printers?username=${username}`
-    const printers = await fetchJson(url)
+    const [allPrinters, recentAndPopularPrinters] = await Promise.all([
+      fetchAllPrinters(username),
+      fetchRecentPrinters(username),
+    ])
 
-    dispatch({type: UPDATE_ALL_PRINTERS_SUCCESS, payload: printers})
+    const {recentPrinters, popularPrinters} = recentAndPopularPrinters
+
+    dispatch({
+      type: UPDATE_ALL_PRINTERS_SUCCESS,
+      payload: {allPrinters, recentPrinters, popularPrinters},
+    })
   }
 }
 
@@ -121,6 +146,8 @@ export function updatePrintJobs(): ThunkAction<UpdatePrintJobsAction> {
 export type State = {|
   jobs: Array<PrintJob>,
   printers: Array<Printer>,
+  recentPrinters: Array<Printer>, // printer names
+  popularPrinters: Array<Printer>, // printer names
   error: ?string,
   loadingPrinters: boolean,
   loadingJobs: boolean,
@@ -130,6 +157,8 @@ const initialState: State = {
   error: null,
   jobs: [],
   printers: [],
+  recentPrinters: [],
+  popularPrinters: [],
   loadingPrinters: false,
   loadingJobs: false,
 }
@@ -159,7 +188,9 @@ export function stoprint(state: State = initialState, action: Action) {
     case UPDATE_ALL_PRINTERS_SUCCESS:
       return {
         ...state,
-        printers: action.payload,
+        printers: action.payload.allPrinters,
+        recentPrinters: action.payload.recentPrinters,
+        popularPrinters: action.payload.popularPrinters,
         error: null,
         loadingPrinters: false,
       }

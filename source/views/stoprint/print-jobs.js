@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react'
-import {SectionList, StyleSheet, View, Text, Button} from 'react-native'
+import {FlatList, StyleSheet, View, Text, Button} from 'react-native'
 import {TabBarIcon} from '../components/tabbar-icon'
 import {connect} from 'react-redux'
 import {type ReduxState} from '../../flux'
@@ -16,8 +16,6 @@ import {
   Title,
 } from '../components/list'
 import type {TopLevelViewPropsType} from '../types'
-import toPairs from 'lodash/toPairs'
-import groupBy from 'lodash/groupBy'
 import delay from 'delay'
 
 const styles = StyleSheet.create({
@@ -66,16 +64,20 @@ class PrintReleaseView extends React.PureComponent<Props> {
 
   fetchData = () => this.props.updatePrintJobs()
 
-  keyExtractor = (item: PrintJob) => item.printerName
+  keyExtractor = (item: PrintJob) => item.id
 
   openSettings = () => {
     this.props.navigation.navigate('SettingsView')
   }
 
+  releaseJob = (id: any) => {
+    this.props.navigation.navigate('PrintJobReleaseView', {id})
+  }
+
   renderItem = ({item}: {item: PrintJob}) => (
-    <ListRow>
+    <ListRow onPress={() => this.releaseJob(item.id)}>
       <Title>{item.documentName}</Title>
-      <Detail>{item.usageCostFormatted}</Detail>
+      <Detail>{item.usageCostFormatted} • {item.totalPages} pages • {item.statusFormatted} • {item.grayscaleFormatted}</Detail>
     </ListRow>
   )
 
@@ -93,19 +95,15 @@ class PrintReleaseView extends React.PureComponent<Props> {
       )
     }
 
-    const jobs = toPairs(groupBy(this.props.jobs, j => j.printerName)).map(
-      ([title, data]) => ({title, data}),
-    )
-
     return (
-      <SectionList
+      <FlatList
         ItemSeparatorComponent={ListSeparator}
         ListEmptyComponent={<ListEmpty mode="bug" />}
+        data={this.props.jobs}
         keyExtractor={this.keyExtractor}
         onRefresh={this.refresh}
         refreshing={this.props.loading}
         renderItem={this.renderItem}
-        sections={jobs}
         style={styles.list}
       />
     )
