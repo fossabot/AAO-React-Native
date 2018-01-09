@@ -61,7 +61,7 @@ async function logIn(username: string, password: string): Promise<'success' | st
   try {
     const now = new Date().getTime()
     const url = `https://papercut.stolaf.edu/rpc/api/rest/internal/webclient/users/${username}/log-in?nocache=${now}`
-    const headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    const headers = new Headers({'Content-Type': 'application/x-www-form-urlencoded'})
     const body = querystring.stringify({password: encode(password)})
     const result = await fetchJson(url, {method: 'POST', body, headers})
 

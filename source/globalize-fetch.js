@@ -19,13 +19,15 @@ function json(response) {
 }
 
 // make fetch() calls throw if the server returns a non-200 status code
-global.fetch = function(input, opts: {[key: string]: any} = {}) {
+global.fetch = function(input, opts: {headers?: Headers, [key: string]: any} = {}) {
   if (opts) {
-    opts.headers = opts.headers || new Headers({})
+    const headers = opts.headers || new Headers({})
 
-    if (!opts.headers.has('User-Agent')) {
-      opts.headers.set('User-Agent', AAO_USER_AGENT)
+    if (!headers.has('User-Agent')) {
+      headers.set('User-Agent', AAO_USER_AGENT)
     }
+
+    opts.headers = headers
   }
 
   return global.rawFetch(input, opts).then(status)
