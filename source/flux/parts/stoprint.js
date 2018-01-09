@@ -89,10 +89,42 @@ async function logIn(
 }
 
 const mobileRelease = `${PAPERCUT}/mobilerelease/api`
+
 const fetchAllPrinters = (username: string): Promise<Array<Printer>> =>
   fetchJson(`${mobileRelease}/all-printers?username=${username}`)
+
 const fetchRecentPrinters = (username: string): Promise<RecentPrinters> =>
   fetchJson(`${mobileRelease}/recent-popular-printers?username=${username}`)
+
+const heldJobsAvailableAtPrinterForUser = (printerName: string, username: string): Promise<{}> =>
+// https://papercut.stolaf.edu/rpc/api/rest/internal/mobilerelease/api/held-jobs/?username=rives&printerName=printers%5Cmfc-it
+fetchJson(`${mobileRelease}/held-jobs/?username=${username}&printerName=printers%5c\\${printerName}`)
+
+const cancelPrintJobForUser = (jobId, username) =>
+// url: '/rpc/api/rest/internal/mobilerelease/api/held-jobs/cancel?username=' + MRApp.session.get('username'),
+// data: {
+//   jobIds: selectedJobIds
+// },
+  fetchJson(`${mobileRelease}/held-jobs/cancel?username=${username}`, {
+    method: 'POST',
+    body: JSON.stringify({
+      jobIds: [jobId],
+    })
+  })
+
+const releasePrintJobToPrinterForUser = ({jobId, printerName, username}: {jobId: any, printerName: string, username: string}) =>
+// url: '/rpc/api/rest/internal/mobilerelease/api/held-jobs/release?username=' + MRApp.session.get('username'),
+// data: {
+//   printerName: this.model._printerName,
+//   jobIds: selectedJobIds
+// },
+  fetchJson(`${mobileRelease}/held-jobs/release?username=${username}`, {
+    method: 'POST',
+    body: JSON.stringify({
+      printerName,
+      jobIds: [jobId],
+    })
+  })
 
 export function updatePrinters(): ThunkAction<UpdateAllPrintersAction> {
   return async dispatch => {
