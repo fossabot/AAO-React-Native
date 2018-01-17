@@ -1,4 +1,4 @@
 // @flow
 
-export {default as default} from './print-jobs'
-export {default as PrintJobReleaseView}  from './printers'
+export {default} from './print-jobs'
+export {default as PrintJobReleaseView} from './printers'

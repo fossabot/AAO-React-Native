@@ -5,32 +5,35 @@ import {AAO_USER_AGENT} from './user-agent'
 global.rawFetch = global.fetch
 
 function status(response) {
-  if (response.status >= 200 && response.status < 300) {
-    return response
-  } else {
-    let error = new Error(response.statusText) // attach the original response to the thrown error
-    ;(error: any).response = response
-    throw error
-  }
+	if (response.status >= 200 && response.status < 300) {
+		return response
+	} else {
+		let error = new Error(response.statusText) // attach the original response to the thrown error
+		;(error: any).response = response
+		throw error
+	}
 }
 
 function json(response) {
-  return response.json()
+	return response.json()
 }
 
 // make fetch() calls throw if the server returns a non-200 status code
-global.fetch = function(input, opts: {headers?: Headers, [key: string]: any} = {}) {
-  if (opts) {
-    const headers = opts.headers || new Headers({})
+global.fetch = function(
+	input,
+	opts: {headers?: Headers, [key: string]: any} = {},
+) {
+	if (opts) {
+		const headers = opts.headers || new Headers({})
 
-    if (!headers.has('User-Agent')) {
-      headers.set('User-Agent', AAO_USER_AGENT)
-    }
+		if (!headers.has('User-Agent')) {
+			headers.set('User-Agent', AAO_USER_AGENT)
+		}
 
-    opts.headers = headers
-  }
+		opts.headers = headers
+	}
 
-  return global.rawFetch(input, opts).then(status)
+	return global.rawFetch(input, opts).then(status)
 }
 
 // add a global fetchJson wrapper
