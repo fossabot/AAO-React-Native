@@ -20,9 +20,9 @@ import {upgradeMenuItem, upgradeStation} from './lib/process-menu-shorthands'
 import {data as fallbackMenu} from '../../../docs/pause-menu.json'
 import {tracker} from '../../analytics'
 import bugsnag from '../../bugsnag'
-const CENTRAL_TZ = 'America/Winnipeg'
+import {GH_PAGES_URL} from '../../globals'
 
-const githubMenuBaseUrl = 'https://stodevx.github.io/AAO-React-Native'
+const CENTRAL_TZ = 'America/Winnipeg'
 
 type Props = TopLevelViewPropsType & {
 	name: string,

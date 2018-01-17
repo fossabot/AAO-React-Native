@@ -6,6 +6,7 @@
 import {NetInfo} from 'react-native'
 import {loadLoginCredentials} from '../lib/login'
 import {updateOnlineStatus} from './parts/app'
+import {getEnabledTools} from './parts/help'
 import {loadHomescreenOrder, loadDisabledViews} from './parts/homescreen'
 import {loadFavoriteBuildings} from './parts/buildings'
 import {

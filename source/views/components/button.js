@@ -1,8 +1,9 @@
 // @flow
 import * as React from 'react'
-import {StyleSheet} from 'react-native'
+import {StyleSheet, Platform} from 'react-native'
 import BasicButton from 'react-native-button'
 import noop from 'lodash/noop'
+import {material, iOSUIKit} from 'react-native-typography'
 
 import * as c from './colors'
 
@@ -22,6 +23,12 @@ const styles = StyleSheet.create({
 		color: c.iosDisabledText,
 	},
 })
+
+type Props = {
+	title?: string,
+	onPress?: () => any,
+	disabled?: boolean,
+}
 
 export function Button({
 	title,

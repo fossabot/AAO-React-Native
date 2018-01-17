@@ -1,8 +1,7 @@
 // @flow
 import {AsyncStorage} from 'react-native'
 import moment from 'moment'
-
-import type {CoursesByTermType} from './courses/types'
+import {GH_PAGES_URL} from '../globals'
 
 type BaseCacheResultType<T> = {
 	isExpired: boolean,
@@ -68,6 +67,7 @@ export function getStudentNumber(): CacheResultType<number> {
 
 const coursesKey = 'courses'
 const coursesCacheTime = [1, 'hour']
+import {type CoursesByTermType} from './courses/types'
 export function setAllCourses(courses: CoursesByTermType) {
 	return setItem(coursesKey, courses, coursesCacheTime)
 }

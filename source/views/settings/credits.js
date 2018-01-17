@@ -1,7 +1,10 @@
 // @flow
 import * as React from 'react'
-import {Text, ScrollView, Image, StyleSheet} from 'react-native'
+import * as c from '../components/colors'
 import {data as credits} from '../../../docs/credits.json'
+import glamorous from 'glamorous-native'
+import {Platform} from 'react-native'
+import {iOSUIKit, material} from 'react-native-typography'
 
 const image = require('../../../images/about/IconTrans.png')
 

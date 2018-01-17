@@ -5,13 +5,12 @@ import {contactImages} from '../../../images/contact-images'
 import {Markdown} from '../components/markdown'
 import {ListFooter} from '../components/list'
 import glamorous from 'glamorous-native'
-import {phonecall} from 'react-native-communications'
+import {callPhone} from '../components/call-phone'
 import {tracker} from '../../analytics'
 import {Button} from '../components/button'
-import openUrl from '../components/open-url'
+import {openUrl} from '../components/open-url'
 import type {ContactType} from './types'
-
-const AAO_URL = 'https://github.com/StoDevX/AAO-React-Native/issues/new'
+import {GH_NEW_ISSUE_URL} from '../../globals'
 
 const Title = glamorous.text({
 	fontSize: 36,

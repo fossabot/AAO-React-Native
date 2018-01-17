@@ -1,10 +1,10 @@
 // @flow
 import * as React from 'react'
 import {Text, ScrollView, StyleSheet} from 'react-native'
-import {email} from 'react-native-communications'
+import {sendEmail} from '../../components/send-email'
 import {Cell, Section, TableView} from 'react-native-tableview-simple'
 import moment from 'moment'
-import openUrl from '../../components/open-url'
+import {openUrl} from '../../components/open-url'
 import * as c from '../../components/colors'
 import type {JobType} from './types'
 import {cleanJob, getContactName, getLinksFromJob} from './clean-job'

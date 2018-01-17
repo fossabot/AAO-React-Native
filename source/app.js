@@ -2,7 +2,6 @@
 
 import './globalize-fetch'
 import './setup-moment'
-import OneSignal from 'react-native-onesignal'
 
 import * as React from 'react'
 import {Provider} from 'react-redux'

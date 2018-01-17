@@ -13,7 +13,6 @@ import {reportNetworkProblem} from '../../lib/report-network-problem'
 import toPairs from 'lodash/toPairs'
 import groupBy from 'lodash/groupBy'
 import delay from 'delay'
-
 import {CENTRAL_TZ} from './lib'
 const githubBaseUrl =
 	'https://stodevx.github.io/AAO-React-Native/building-hours.json'

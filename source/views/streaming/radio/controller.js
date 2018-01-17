@@ -9,17 +9,20 @@ import {
 	Text,
 	View,
 } from 'react-native'
+import noop from 'lodash/noop'
 import * as c from '../../components/colors'
 import {TabBarIcon} from '../../components/tabbar-icon'
-import {phonecall} from 'react-native-communications'
+import {callPhone} from '../../components/call-phone'
 import {Row} from '../../components/layout'
 import type {TopLevelViewPropsType} from '../../types'
 import {StreamPlayer} from './player'
 import type {PlayState, HtmlAudioError, Viewport} from './types'
 import {ActionButton, ShowCalendarButton, CallButton} from './buttons'
+import {openUrl} from '../../components/open-url'
 
 const image = require('../../../../images/streaming/ksto/ksto-logo.png')
 const stationNumber = '+15077863602'
+const kstoLiveUrl = 'https://www.stolaf.edu/multimedia/play/embed/ksto.html'
 
 type Props = TopLevelViewPropsType
 

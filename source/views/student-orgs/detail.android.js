@@ -6,8 +6,8 @@ import {Card} from '../components/card'
 import * as c from '../components/colors'
 import type {StudentOrgType} from './types'
 import type {TopLevelViewPropsType} from '../types'
-import {email} from 'react-native-communications'
-import openUrl from '../components/open-url'
+import {sendEmail} from '../components/send-email'
+import {openUrl} from '../components/open-url'
 import {cleanOrg, showNameOrEmail} from './util'
 
 const styles = StyleSheet.create({

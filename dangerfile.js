@@ -63,7 +63,7 @@ if (thisPRSize > bigPRThreshold) {
 }
 
 //
-// Check for and report errors from our tools
+// task=JS-flow
 //
 const isBadBundleLog = log => {
 	const allLines = log.split('\n')
@@ -85,22 +85,26 @@ const fileLog = (name, log, {lang = null} = {}) => {
 <details>
   <summary>${name}</summary>
 
-\`\`\`${lang || ''}
-${log}
-\`\`\`
+	const startIndex = findIndex(
+		file,
+		l => l.trim() === 'Summary of all failing tests',
+	)
+	const endIndex = findIndex(
+		file,
+		l => l.trim() === 'Ran all test suites.',
+		startIndex,
+	)
 
 </details>`,
 	)
 }
 
-const prettierLog = readLogFile('logs/prettier')
-const eslintLog = readLogFile('logs/eslint')
-const dataValidationLog = readLogFile('logs/validate-data')
-const busDataValidationLog = readLogFile('logs/validate-bus-data')
-const flowLog = readLogFile('logs/flow')
-const iosJsBundleLog = readLogFile('logs/bundle-ios')
-const androidJsBundleLog = readLogFile('logs/bundle-android')
-const jestLog = readLogFile('logs/jest')
+//
+// JS-lint
+//
+
+function runJSのLint() {
+	const eslintLog = readLogFile('./logs/eslint')
 
 if (prettierLog) {
 	fileLog('Prettier made some changes', prettierLog, {lang: 'diff'})
@@ -141,3 +145,99 @@ if (jestLog && jestLog.includes('FAIL')) {
 		lines.slice(startIndex).join('\n'),
 	)
 }
+
+function parseXcodeProject(pbxprojPath /*: string*/) /*: Promise<Object>*/ {
+	return new Promise((resolve, reject) => {
+		const project = xcode.project(pbxprojPath)
+		// I think this can be called twice from .parse, which is an error for a Promise
+		let resolved = false
+		project.parse((error, data) => {
+			if (resolved) {
+				return
+			}
+			resolved = true
+
+			if (error) {
+				reject(error)
+			}
+			resolve(data)
+		})
+	})
+}
+
+// eslint-disable-next-line no-unused-vars
+async function listZip(filepath /*: string*/) {
+	try {
+		const {stdout} = await execFile('unzip', ['-l', filepath])
+		const lines = stdout.split('\n')
+
+		const parsed = lines.slice(3, -3).map(line => {
+			const length = parseInt(line.slice(0, 9).trim(), 10)
+			// const datetime = line.slice(12, 28)
+			const filepath = line.slice(30).trim()
+			const type = filepath.endsWith('/') ? 'folder' : 'file'
+			return {size: length, filepath, type}
+		})
+		const zipSize = parsed.reduce((sum, current) => current.size + sum, 0)
+
+		return {files: parsed, size: zipSize}
+	} catch (err) {
+		fail(
+			h.details(
+				h.summary(`Could not examine the ZIP file at <code>${filepath}</code>`),
+				m.json(err),
+			),
+		)
+	}
+}
+
+function listDirectory(dirpath /*: string*/) {
+	try {
+		return fs.readdirSync(dirpath)
+	} catch (err) {
+		fail(h.details(h.summary(`${h.code(dirpath)} does not exist`), m.json(err)))
+		return []
+	}
+}
+
+// eslint-disable-next-line no-unused-vars
+function listDirectoryTree(dirpath /*: string*/) /*: any*/ {
+	try {
+		const exists = fs.accessSync(dirpath, fs.F_OK)
+
+		if (!exists) {
+			fail(
+				h.details(
+					h.summary(`Could not access <code>${dirpath}</code>`),
+					m.code({}, listDirectory(dirpath).join('\n')),
+				),
+			)
+		}
+
+		return directoryTree(dirpath)
+	} catch (err) {
+		fail(
+			h.details(
+				h.summary('<code>listDirectoryTree</code> threw an error'),
+				m.json(err),
+			),
+		)
+		return {}
+	}
+}
+
+async function didNativeDependencyChange() /*: Promise<boolean>*/ {
+	const diff = await danger.git.JSONDiffForFile('package.json')
+
+	if (!diff.dependencies && !diff.devDependencies) {
+		return false
+	}
+
+	// If we need to, we can add more heuristics here in the future
+	return true
+}
+
+//
+// Run the file
+//
+schedule(main)

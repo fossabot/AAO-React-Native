@@ -1,16 +1,16 @@
 // @flow
 
 import * as React from 'react'
-import {StyleSheet} from 'react-native'
-import glamorous from 'glamorous-native'
 import {Card} from '../components/card'
 import {Button} from '../components/button'
-import deviceInfo from 'react-native-device-info'
-import networkInfo from 'react-native-network-info'
+import {Markdown} from '../components/markdown'
 import retry from 'p-retry'
 import delay from 'delay'
 import {reportNetworkProblem} from '../../lib/report-network-problem'
-import pkg from '../../../package.json'
+import {Error, ErrorMessage} from './components'
+import {getPosition, collectData, reportToServer} from './wifi-tools'
+import {styles} from './tool'
+import type {ToolOptions} from './types'
 
 const getIpAddress = () =>
 	new Promise(resolve => {
@@ -51,7 +51,9 @@ function reportToServer(data) {
 	return fetch(url, {method: 'POST', body: JSON.stringify(data)})
 }
 
-type Props = {}
+type Props = {
+	config: ToolOptions,
+}
 
 type State = {
 	status: string,

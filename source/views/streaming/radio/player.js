@@ -4,7 +4,7 @@ import * as React from 'react'
 import {WebView} from 'react-native'
 import type {PlayState, HtmlAudioError} from './types'
 
-const kstoStream = 'https://cdn.stobcm.com/radio/ksto1.stream/master.m3u8'
+const kstoEmbed = 'https://www.stolaf.edu/multimedia/play/embed/ksto.html'
 
 type Props = {
 	playState: PlayState,
@@ -108,43 +108,41 @@ export class StreamPlayer extends React.PureComponent<Props> {
       <source src="${url}" />
     </audio>
 
-    <script>
-      var player = document.getElementById('player')
+    ready(function () {
+      var player = document.querySelector('audio');
 
-      /////
-      /////
+      /*******
+       *******/
 
-      document.addEventListener('message', function(event) {
+      document.addEventListener('message', function (event) {
         switch (event.data) {
           case 'play':
-            player.play()
-            break
+            player.muted = false;
+            player.play().catch(error);
+            break;
 
           case 'pause':
-            player.pause()
-            break
+            player.pause();
+            break;
         }
-      })
+      });
 
-      /////
-      /////
+      /*******
+       *******/
 
       function message(data) {
-        window.postMessage(JSON.stringify(data))
+        window.postMessage(JSON.stringify(data));
       }
 
       function send(event) {
-        message({type: event.type})
+        message({type: event.type});
       }
 
       function error(event) {
         message({
           type: event.type,
-          error: {
-            code: event.target.error.code,
-            message: event.target.error.message,
-          },
-        })
+          error: 'error',
+        });
       }
 
       /////
