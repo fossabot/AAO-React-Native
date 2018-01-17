@@ -54,7 +54,6 @@
   "prettier": {
     "useTabs": true,
     "singleQuote": true,
-    "useTabs": true,
     "trailingComma": "all",
     "bracketSpacing": false,
     "semi": false
