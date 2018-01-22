@@ -41,7 +41,7 @@ import HelpView from './views/help'
 
 const styles = StyleSheet.create({
 	header: {
-		backgroundColor: c.olevilleGold,
+		backgroundColor: c.appNavigationBackground,
 	},
 	card: {
 		...Platform.select({
@@ -96,7 +96,7 @@ export const AppNavigator = StackNavigator(
 	{
 		navigationOptions: {
 			headerStyle: styles.header,
-			headerTintColor: c.white,
+			headerTintColor: c.appNavigationText,
 		},
 		cardStyle: styles.card,
 	},

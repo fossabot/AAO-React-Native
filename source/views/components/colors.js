@@ -230,3 +230,8 @@ export const stoText = {
 	navy: white,
 	mint: black,
 }
+
+// MARK: App colors
+export const appNavigationBackground = sto.gold
+export const appNavigationText = stoText.gold
+export const appStatusbarBackground = sto.lightGold

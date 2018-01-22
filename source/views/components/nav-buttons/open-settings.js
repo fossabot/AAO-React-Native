@@ -31,7 +31,7 @@ export function OpenSettingsButton({
 
 const styles = StyleSheet.create({
 	icon: {
-		color: c.white,
+		color: c.appNavigationText,
 		fontSize: 24,
 	},
 	button: {
