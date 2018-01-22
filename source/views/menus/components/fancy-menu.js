@@ -182,6 +182,7 @@ class FancyMenu extends React.PureComponent<Props> {
 				ItemSeparatorComponent={Separator}
 				ListEmptyComponent={messageView}
 				ListHeaderComponent={header}
+				contentInsetAdjustmentBehavior="always"
 				data={filters}
 				keyExtractor={this.keyExtractor}
 				onRefresh={this.props.onRefresh}

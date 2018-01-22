@@ -8,7 +8,7 @@ import {Provider} from 'react-redux'
 import {makeStore, initRedux} from './flux'
 import bugsnag from './bugsnag'
 import {tracker} from './analytics'
-import {AppNavigator} from './navigation'
+// import {AppNavigator} from './navigation'
 import {
 	startStatusBarColorChanger,
 	stopStatusBarColorChanger,
@@ -63,9 +63,9 @@ export default class App extends React.Component<Props> {
 	}
 
 	render() {
+				// <AppNavigator onNavigationStateChange={this.trackScreenChanges} />
 		return (
 			<Provider store={store}>
-				<AppNavigator onNavigationStateChange={this.trackScreenChanges} />
 			</Provider>
 		)
 	}
