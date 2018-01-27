@@ -23,7 +23,7 @@ export const commonStyles = StyleSheet.create({
 	},
 	text: {
 		fontSize: 17,
-		color: c.white,
+		color: c.navigationTextTint,
 		...Platform.select({
 			android: {
 				marginTop: 1,
@@ -49,14 +49,10 @@ export const rightButtonStyles = StyleSheet.create({
 		}),
 	},
 	icon: {
-		color: c.white,
-		...Platform.select({
-			ios: {
-				fontSize: 32,
-			},
-			android: {
-				fontSize: 24,
-			},
+		color: c.navigationTextTint,
+		fontSize: Platform.select({
+			ios: 32,
+			android: 24,
 		}),
 	},
 })

@@ -40,9 +40,13 @@ type ReduxDispatchProps = {
 type Props = TopLevelViewPropsType & ReduxStateProps & ReduxDispatchProps
 
 export class HelpView extends React.Component<Props> {
-	static navigationOptions = {
+	static navigationOptions = ({navigation}: any) => ({
 		title: 'Help',
-	}
+		headerTintColor: navigation.state.params.colors.tint,
+		headerStyle: {
+			backgroundColor: navigation.state.params.colors.background,
+		},
+	})
 
 	componentWillMount() {
 		this.props.getEnabledTools()

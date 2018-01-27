@@ -236,3 +236,7 @@ export const stoText = {
 	navy: white,
 	mint: black,
 }
+
+// MARK: app navigation colors
+export const navigationTextTint = stoText.lightGold
+export const navigationBarTint = sto.lightGold

@@ -43,17 +43,10 @@ import {FaqView} from './views/faqs'
 import HelpView from './views/help'
 
 const styles = StyleSheet.create({
-	header: {
-		backgroundColor: c.olevilleGold,
-	},
 	card: {
-		...Platform.select({
-			ios: {
-				backgroundColor: c.iosLightBackground,
-			},
-			android: {
-				backgroundColor: c.androidLightBackground,
-			},
+		backgroundColor: Platform.select({
+			ios: c.iosLightBackground,
+			android: c.androidLightBackground,
 		}),
 	},
 })
@@ -98,10 +91,6 @@ export const AppNavigator = StackNavigator(
 		CarletonSaylesMenuView: {screen: CarletonSaylesMenuScreen},
 	},
 	{
-		navigationOptions: {
-			headerStyle: styles.header,
-			headerTintColor: c.white,
-		},
 		cardStyle: styles.card,
 	},
 )

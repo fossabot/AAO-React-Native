@@ -9,13 +9,11 @@ import {Touchable} from '../touchable'
 import type {NavType} from '../../types'
 import {commonStyles} from './styles'
 
-export function CloseScreenButton({
-	navigation,
-	buttonStyle,
-}: {
+export function CloseScreenButton(props: {
 	navigation: NavType,
 	buttonStyle?: any,
 }) {
+	const {navigation, buttonStyle} = props
 	return (
 		<Touchable
 			borderless={true}
@@ -30,13 +28,9 @@ export function CloseScreenButton({
 
 const styles = StyleSheet.create({
 	text: {
-		...Platform.select({
-			ios: {
-				fontWeight: '600',
-			},
-			android: {
-				fontWeight: '400',
-			},
+		fontWeight: Platform.select({
+			ios: '600',
+			android: '400',
 		}),
 	},
 })

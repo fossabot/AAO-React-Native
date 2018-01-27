@@ -47,9 +47,9 @@ export default TabNavigator(
 			screen: OtherModesView,
 		},
 	},
-	{
+	({navigation}) => ({
 		navigationOptions: {
 			title: 'Transportation',
 		},
-	},
+	}),
 )

@@ -37,10 +37,14 @@ type State = {
 }
 
 export class ContactsListView extends React.PureComponent<Props, State> {
-	static navigationOptions = {
+	static navigationOptions = ({navigation}: any) => ({
 		title: 'Important Contacts',
 		headerBackTitle: 'Contacts',
-	}
+		headerTintColor: navigation.state.params.colors.tint,
+		headerStyle: {
+			backgroundColor: navigation.state.params.colors.background,
+		},
+	})
 
 	state = {
 		contacts: defaultData.data,

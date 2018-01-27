@@ -9,13 +9,11 @@ import {Touchable} from '../touchable'
 import type {NavType} from '../../types'
 import {commonStyles} from './styles'
 
-export function EditHomeButton({
-	navigation,
-	buttonStyle,
-}: {
+export function EditHomeButton(props: {
 	navigation: NavType,
 	buttonStyle?: any,
 }) {
+	const {navigation, buttonStyle} = props
 	return (
 		<Touchable
 			borderless={true}

@@ -43,7 +43,7 @@ function HomePage({navigation, order, inactiveViews, views = allViews}: Props) {
 			showsHorizontalScrollIndicator={false}
 			showsVerticalScrollIndicator={false}
 		>
-			<StatusBar backgroundColor={c.gold} barStyle="light-content" />
+			<StatusBar backgroundColor={c.gold} barStyle="dark-content" />
 
 			{columns.map((contents, i) => (
 				<Column key={i} style={styles.column}>
@@ -51,10 +51,20 @@ function HomePage({navigation, order, inactiveViews, views = allViews}: Props) {
 						<HomeScreenButton
 							key={view.view}
 							onPress={() => {
+								const colors = {
+									tint: c.white,
+									background: view.gradient ? view.gradient[1] : view.tint,
+									statusBar: 'light-content',
+								}
+								// const colors = {
+								// 	tint: view.gradient ? view.gradient[1] : view.tint,
+								// 	background: c.white,
+								// 	statusBar: 'dark-content',
+								// }
 								if (view.type === 'url') {
-									return trackedOpenUrl({url: view.url, id: view.view})
+									return trackedOpenUrl({url: view.url, id: view.view, colors})
 								} else {
-									return navigation.navigate(view.view)
+									return navigation.navigate(view.view, {colors})
 								}
 							}}
 							view={view}
@@ -71,6 +81,10 @@ HomePage.navigationOptions = ({navigation}) => {
 		headerBackTitle: 'Home',
 		headerLeft: <OpenSettingsButton navigation={navigation} />,
 		headerRight: <EditHomeButton navigation={navigation} />,
+		headerTintColor: c.navigationTextTint,
+		headerStyle: {
+			backgroundColor: c.navigationBarTint,
+		},
 	}
 }
 

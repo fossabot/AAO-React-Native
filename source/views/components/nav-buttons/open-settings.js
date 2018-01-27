@@ -10,13 +10,11 @@ import {Touchable} from '../touchable'
 import Icon from 'react-native-vector-icons/Ionicons'
 import type {NavType} from '../../types'
 
-export function OpenSettingsButton({
-	navigation,
-	buttonStyle,
-}: {
+export function OpenSettingsButton(props: {
 	navigation: NavType,
 	buttonStyle?: any,
 }) {
+	const {navigation, buttonStyle} = props
 	return (
 		<Touchable
 			borderless={true}
@@ -31,7 +29,7 @@ export function OpenSettingsButton({
 
 const styles = StyleSheet.create({
 	icon: {
-		color: c.white,
+		color: c.navigationTextTint,
 		fontSize: 24,
 	},
 	button: {
