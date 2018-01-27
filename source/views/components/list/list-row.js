@@ -13,14 +13,15 @@ const styles = StyleSheet.create({
 	},
 	container: {
 		flexDirection: 'row',
-		paddingLeft: 15,
 		backgroundColor: c.white,
 		...Platform.select({
 			ios: {
+				paddingLeft: 15,
 				paddingVertical: 8,
-				paddingRight: 8,
+				paddingRight: 12,
 			},
 			android: {
+				paddingLeft: 15,
 				paddingVertical: 16,
 				paddingRight: 15,
 			},

@@ -9,7 +9,7 @@ const arrowStyles = StyleSheet.create({
 		marginLeft: 10,
 	},
 	icon: {
-		color: c.iosDisabledText,
+		color: c.iosDisclosureArrow,
 		fontSize: 20,
 	},
 })
