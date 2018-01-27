@@ -17,7 +17,7 @@ export class ContactRow extends React.PureComponent<Props> {
 		const {contact} = this.props
 
 		return (
-			<ListRow arrowPosition="top" onPress={this._onPress}>
+			<ListRow arrowPosition="center" onPress={this._onPress}>
 				<Row alignItems="center">
 					<Column flex={1}>
 						<Title lines={1}>{contact.title}</Title>
