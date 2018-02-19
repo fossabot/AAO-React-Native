@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import {ScrollView, Text, View, StyleSheet} from 'react-native'
+import {Navigation} from 'react-native-navigation'
 import moment from 'moment'
 import {Cell, Section, TableView} from 'react-native-tableview-simple'
 import * as c from '../components/colors'
@@ -70,7 +71,7 @@ export class StudentOrgsDetailView extends React.PureComponent<Props> {
 			advisors,
 			description,
 			lastUpdated: orgLastUpdated,
-		} = cleanOrg(this.props.navigation.state.params.org)
+		} = cleanOrg(this.props.item)
 
 		return (
 			<ScrollView>

@@ -114,7 +114,7 @@ export const allViews: ViewType[] = [
 	},
 	{
 		type: 'view',
-		view: 'StudentOrgsView',
+		view: 'app.studentOrgs.List',
 		title: 'Student Orgs',
 		icon: 'globe',
 		tint: c.periwinkle,

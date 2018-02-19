@@ -35,7 +35,7 @@ import {
 // import PrivacyView from './views/settings/privacy'
 // import LegalView from './views/settings/legal'
 // import {IconSettingsView} from './views/settings/icon'
-// import {StudentOrgsView, StudentOrgsDetailView} from './views/student-orgs'
+import {StudentOrgsView, StudentOrgsDetailView} from './views/student-orgs'
 // import {FaqView} from './views/faqs'
 // import HelpView from './views/help'
 
@@ -91,11 +91,11 @@ Navigation.registerComponent('app.dictionary.List', () => DictionaryView)
 // Navigation.registerComponent('app.settings.appIcon', () => IconSettingsView)
 // Navigation.registerComponent('app.sis.Index', () => SISView)
 // Navigation.registerComponent('app.streamingMedia.Index', () => StreamingView)
-// Navigation.registerComponent(
-// 	'app.studentOrgs.Detail',
-// 	() => StudentOrgsDetailView,
-// )
-// Navigation.registerComponent('app.studentOrgs.List', () => StudentOrgsView)
+Navigation.registerComponent(
+	'app.studentOrgs.Detail',
+	() => StudentOrgsDetailView,
+)
+Navigation.registerComponent('app.studentOrgs.List', () => StudentOrgsView)
 // Navigation.registerComponent('app.studentWork.Detail', () => JobDetailView)
 // Navigation.registerComponent('app.transit.BusMap', () => BusMapView)
 // Navigation.registerComponent('app.transit.Index', () => TransportationView)

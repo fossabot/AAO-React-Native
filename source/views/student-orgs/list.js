@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import {StyleSheet, View, Text, Platform, RefreshControl} from 'react-native'
+import {Navigation} from 'react-native-navigation'
 import {SearchableAlphabetListView} from '../components/searchable-alphabet-listview'
 import type {TopLevelViewPropsType} from '../types'
 import LoadingView from '../components/loading'
@@ -77,10 +78,10 @@ type State = {
 }
 
 export class StudentOrgsView extends React.PureComponent<Props, State> {
-	static navigationOptions = {
-		title: 'Student Orgs',
-		headerBackTitle: 'Orgs',
-	}
+	// static navigationOptions = {
+	// 	title: 'Student Orgs',
+	// 	headerBackTitle: 'Orgs',
+	// }
 
 	searchBar: any
 
@@ -174,7 +175,19 @@ export class StudentOrgsView extends React.PureComponent<Props, State> {
 
 	onPressRow = (data: StudentOrgType) => {
 		tracker.trackEvent('student-org', data.name)
-		this.props.navigation.navigate('StudentOrgsDetailView', {org: data})
+		Navigation.push(this.props.componentId, {
+			component: {
+				name: 'app.studentOrgs.Detail',
+				options: {
+					topBar: {
+						title: data.name,
+					},
+				},
+				passProps: {
+					item: data,
+				},
+			},
+		})
 	}
 
 	performSearch = (text: ?string) => {
