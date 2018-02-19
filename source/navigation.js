@@ -1,12 +1,12 @@
 // @flow
 
-import Navigation from 'react-native-navigation'
+import {Navigation} from 'react-native-navigation'
 import * as c from './views/components/colors'
 
 import {HomeView} from './views/home'
 // import CalendarView, {EventDetail as EventDetailView} from './views/calendar'
 // import {ContactsView, ContactsDetailView} from './views/contacts'
-// import {DictionaryView, DictionaryDetailView} from './views/dictionary'
+import {DictionaryView, DictionaryDetailView} from './views/dictionary'
 // import {HomeView, EditHomeView} from './views/home'
 // import StreamingView, {KSTOScheduleView} from './views/streaming'
 // import {
@@ -20,12 +20,12 @@ import {HomeView} from './views/home'
 // import NewsView from './views/news'
 // import SISView from './views/sis'
 // import {JobDetailView} from './views/sis/student-work/detail'
-// import {
-// 	BuildingHoursView,
-// 	BuildingHoursDetailView,
-// 	BuildingHoursProblemReportView,
-// 	BuildingHoursScheduleEditorView,
-// } from './views/building-hours'
+import {
+	BuildingHoursView,
+	// 	BuildingHoursDetailView,
+	// 	BuildingHoursProblemReportView,
+	// 	BuildingHoursScheduleEditorView,
+} from './views/building-hours'
 // import TransportationView, {
 // 	BusMap as BusMapView,
 // 	OtherModesDetailView,
@@ -49,7 +49,7 @@ Navigation.registerComponent('app.Index', () => HomeView)
 // 	'app.dictionary.Detail',
 // 	() => DictionaryDetailView,
 // )
-// Navigation.registerComponent('app.dictionary.List', () => DictionaryView)
+Navigation.registerComponent('app.dictionary.List', () => DictionaryView)
 // Navigation.registerComponent('app.editHome', () => EditHomeView)
 // Navigation.registerComponent('app.events.Detail', () => EventDetailView)
 // Navigation.registerComponent('app.events.List', () => CalendarView)
@@ -111,6 +111,11 @@ Navigation.events().onAppLaunched(() => {
 				{
 					component: {
 						name: 'app.Index',
+						options: {
+							topBar: {
+								title: 'Home',
+							},
+						},
 					},
 				},
 			],

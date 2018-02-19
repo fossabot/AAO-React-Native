@@ -40,7 +40,7 @@ export const allViews: ViewType[] = [
 	},
 	{
 		type: 'view',
-		view: 'BuildingHoursView',
+		view: 'app.hours.List',
 		title: 'Building Hours',
 		icon: 'clock',
 		tint: c.wave,
@@ -106,7 +106,7 @@ export const allViews: ViewType[] = [
 	},
 	{
 		type: 'view',
-		view: 'DictionaryView',
+		view: 'app.dictionary.List',
 		title: 'Campus Dictionary',
 		icon: 'open-book',
 		tint: c.olive,

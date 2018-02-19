@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import {ScrollView, StyleSheet, StatusBar} from 'react-native'
+import {Navigation} from 'react-native-navigation'
 
 import {connect} from 'react-redux'
 import * as c from '../components/colors'
@@ -26,15 +27,12 @@ type ReduxStateProps = {
 
 type Props = ReactProps & ReduxStateProps
 
-class HomePage extends React.Component {
+class HomePage extends React.Component<Props> {
 	render() {
-		const {
-			navigation,
-			order = [],
-			inactiveViews = [],
-			views = allViews,
-		} = this.props
+		const {order = [], inactiveViews = [], views = allViews} = this.props
 		const sortedViews = sortBy(views, view => order.indexOf(view.view))
+
+		console.log(this.props)
 
 		const enabledViews = sortedViews.filter(
 			view => !inactiveViews.includes(view.view),
@@ -61,7 +59,16 @@ class HomePage extends React.Component {
 									if (view.type === 'url') {
 										return trackedOpenUrl({url: view.url, id: view.view})
 									} else {
-										return navigation.navigate(view.view)
+										return Navigation.push(this.props.componentId, {
+											component: {
+												name: view.view,
+												options: {
+													topBar: {
+														title: 'pushed',
+													},
+												},
+											},
+										})
 									}
 								}}
 								view={view}
