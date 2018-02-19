@@ -31,14 +31,8 @@ const styles = StyleSheet.create({
 type Props = {navigation: {state: {params: {mode: OtherModeType}}}}
 
 export class OtherModesDetailView extends React.PureComponent<Props> {
-	static navigationOptions = ({navigation}: any) => {
-		return {
-			title: navigation.state.params.mode.name,
-		}
-	}
-
 	onPress = () => {
-		const {name, url} = this.props.navigation.state.params.mode
+		const {name, url} = this.props.item
 		tracker.trackScreenView(
 			`Transportation_OtherModes_${name.replace(' ', '')}View`,
 		)
@@ -46,7 +40,7 @@ export class OtherModesDetailView extends React.PureComponent<Props> {
 	}
 
 	render() {
-		const mode = this.props.navigation.state.params.mode
+		const mode = this.props.item
 		return (
 			<Container>
 				<Title selectable={true}>{mode.name}</Title>

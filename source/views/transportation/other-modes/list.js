@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import {Navigation} from 'react-native-navigation'
 import delay from 'delay'
 import {OtherModesRow} from './row'
 import {reportNetworkProblem} from '../../../lib/report-network-problem'
@@ -83,8 +84,18 @@ export class OtherModesView extends React.PureComponent<Props, State> {
 	}
 
 	onPress = (mode: OtherModeType) => {
-		this.props.navigation.navigate('OtherModesDetailView', {
-			mode,
+		Navigation.push(this.props.componentId, {
+			component: {
+				name: 'app.transit.otherModes.Detail',
+				options: {
+					topBar: {
+						title: mode.name,
+					},
+				},
+				passProps: {
+					item: mode,
+				},
+			},
 		})
 	}
 

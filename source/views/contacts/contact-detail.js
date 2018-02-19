@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import {Alert, StyleSheet, ScrollView, Image} from 'react-native'
-import {Navigation} from 'react-native-navigation'
 import {contactImages} from '../../../images/contact-images'
 import {Markdown} from '../components/markdown'
 import {ListFooter} from '../components/list'
