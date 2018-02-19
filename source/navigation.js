@@ -45,10 +45,10 @@ Navigation.registerComponent('app.Index', () => HomeView)
 // Navigation.registerComponent('app.component.Filter', () => FilterView)
 // Navigation.registerComponent('app.contacts.Detail', () => ContactsDetailView)
 // Navigation.registerComponent('app.contacts.List', () => ContactsView)
-// Navigation.registerComponent(
-// 	'app.dictionary.Detail',
-// 	() => DictionaryDetailView,
-// )
+Navigation.registerComponent(
+	'app.dictionary.Detail',
+	() => DictionaryDetailView,
+)
 Navigation.registerComponent('app.dictionary.List', () => DictionaryView)
 // Navigation.registerComponent('app.editHome', () => EditHomeView)
 // Navigation.registerComponent('app.events.Detail', () => EventDetailView)

@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import {StyleSheet, RefreshControl, Platform} from 'react-native'
+import {Navigation} from 'react-native-navigation'
 import {SearchableAlphabetListView} from '../components/searchable-alphabet-listview'
 import {Column} from '../components/layout'
 import {
@@ -99,7 +100,20 @@ export class DictionaryView extends React.PureComponent<Props, State> {
 
 	onPressRow = (data: WordType) => {
 		tracker.trackEvent('dictionary', data.word)
-		this.props.navigation.navigate('DictionaryDetailView', {item: data})
+		// this.props.navigation.navigate('DictionaryDetailView', {item: data})
+		Navigation.push(this.props.componentId, {
+			component: {
+				name: 'app.dictionary.Detail',
+				options: {
+					topBar: {
+						title: '',
+					},
+				},
+				passProps: {
+					item: data,
+				},
+			},
+		})
 	}
 
 	renderRow = ({item}: {item: WordType}) => (

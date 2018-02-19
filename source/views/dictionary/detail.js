@@ -41,7 +41,8 @@ export class DictionaryDetailView extends React.PureComponent<Props> {
 	}
 
 	render() {
-		const item = this.props.navigation.state.params.item
+		console.log(this.props)
+		const item = this.props.item
 		return (
 			<Container>
 				<Term selectable={true}>{item.word}</Term>
