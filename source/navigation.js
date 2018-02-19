@@ -113,6 +113,7 @@ Navigation.events().onAppLaunched(() => {
 						options: {
 							topBar: {
 								title: 'Home',
+								largeTitle: true,
 							},
 						},
 					},

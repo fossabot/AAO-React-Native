@@ -65,6 +65,7 @@ class HomePage extends React.Component<Props> {
 												options: {
 													topBar: {
 														title: view.title,
+														largeTitle: true,
 													},
 												},
 											},
