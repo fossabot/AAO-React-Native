@@ -1,10 +1,11 @@
 // @flow
 
-import {AppRegistry} from 'react-native'
-import App from './app'
-
-// I'm not importing the exported variable because I just want to initialize
-// the file here.
+import './globalize-fetch'
+import './setup-moment'
+import './navigation'
 import './bugsnag'
 
-// AppRegistry.registerComponent('AllAboutOlaf', () => App)
+import {makeStore, initRedux} from './flux'
+
+const store = makeStore()
+initRedux(store)
