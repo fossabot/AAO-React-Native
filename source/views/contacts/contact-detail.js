@@ -50,19 +50,8 @@ function promptCall(buttonText: string, phoneNumber: string) {
 type Props = {navigation: {state: {params: {contact: ContactType}}}}
 
 export class ContactsDetailView extends React.PureComponent<Props> {
-	static navigationOptions = ({navigation}: any) => {
-		return {
-			title: navigation.state.params.contact.title,
-		}
-	}
-
 	onPress = () => {
-		const {
-			title,
-			phoneNumber,
-			buttonText,
-			buttonLink,
-		} = this.props.navigation.state.params.contact
+		const {title, phoneNumber, buttonText, buttonLink} = this.props.item
 		tracker.trackScreenView(`ImportantContacts_${title.replace(' ', '')}View`)
 		if (buttonLink) {
 			openUrl(buttonLink)
