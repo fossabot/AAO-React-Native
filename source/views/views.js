@@ -57,7 +57,7 @@ export const allViews: ViewType[] = [
 	{
 		type: 'url',
 		url: 'https://www.stolaf.edu/personal/index.cfm',
-		view: 'DirectoryView',
+		view: 'link.StOlaf.Directory',
 		title: 'Directory',
 		icon: 'v-card',
 		tint: c.indianRed,
@@ -82,7 +82,7 @@ export const allViews: ViewType[] = [
 	{
 		type: 'url',
 		url: 'https://www.myatlascms.com/map/index.php?id=294',
-		view: 'MapView',
+		view: 'link.StOlaf.Map',
 		title: 'Campus Map',
 		icon: 'map',
 		tint: c.coffee,
@@ -123,7 +123,7 @@ export const allViews: ViewType[] = [
 	{
 		type: 'url',
 		url: 'https://moodle.stolaf.edu/',
-		view: 'MoodleView',
+		view: 'link.StOlaf.Moodle',
 		title: 'Moodle',
 		icon: 'graduation-cap',
 		tint: c.cantaloupe,
