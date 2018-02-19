@@ -21,9 +21,9 @@ import SISView from './views/sis'
 import {JobDetailView} from './views/sis/student-work/detail'
 import {
 	BuildingHoursView,
-		BuildingHoursDetailView,
-		BuildingHoursProblemReportView,
-		BuildingHoursScheduleEditorView,
+	BuildingHoursDetailView,
+	BuildingHoursProblemReportView,
+	BuildingHoursScheduleEditorView,
 } from './views/building-hours'
 import TransportationView, {
 	BusMap as BusMapView,
