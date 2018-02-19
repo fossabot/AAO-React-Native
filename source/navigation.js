@@ -1,7 +1,7 @@
 // @flow
 
 import {Navigation} from 'react-native-navigation'
-// import * as c from './views/components/colors'
+import * as c from './views/components/colors'
 
 import {HomeView, EditHomeView} from './views/home'
 import CalendarView, {EventDetail as EventDetailView} from './views/calendar'
@@ -114,6 +114,7 @@ Navigation.events().onAppLaunched(() => {
 							topBar: {
 								title: 'Home',
 								largeTitle: true,
+								backgroundColor: c.olevilleGold,
 							},
 						},
 					},
