@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import {SectionList, StyleSheet} from 'react-native'
+import {Navigation} from 'react-native-navigation'
 import {ListSeparator, ListSectionHeader} from '../components/list'
 import {ListEmpty} from '../components/list'
 import {ContactRow} from './contact-row'
@@ -37,11 +38,6 @@ type State = {
 }
 
 export class ContactsListView extends React.PureComponent<Props, State> {
-	static navigationOptions = {
-		title: 'Important Contacts',
-		headerBackTitle: 'Contacts',
-	}
-
 	state = {
 		contacts: defaultData.data,
 		loading: true,
@@ -83,8 +79,18 @@ export class ContactsListView extends React.PureComponent<Props, State> {
 	}
 
 	onPressContact = (contact: ContactType) => {
-		this.props.navigation.navigate('ContactsDetailView', {
-			contact,
+		Navigation.push(this.props.componentId, {
+			component: {
+				name: 'app.contacts.Detail',
+				options: {
+					topBar: {
+						title: contact.title,
+					},
+				},
+				passProps: {
+					item: contact,
+				},
+			},
 		})
 	}
 

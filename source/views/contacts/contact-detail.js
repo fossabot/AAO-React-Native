@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Alert, StyleSheet, ScrollView, Image} from 'react-native'
+import {Navigation} from 'react-native-navigation'
 import {contactImages} from '../../../images/contact-images'
 import {Markdown} from '../components/markdown'
 import {ListFooter} from '../components/list'
@@ -71,7 +72,7 @@ export class ContactsDetailView extends React.PureComponent<Props> {
 	}
 
 	render() {
-		const contact = this.props.navigation.state.params.contact
+		const contact = this.props.item
 		const headerImage =
 			contact.image && contactImages.hasOwnProperty(contact.image)
 				? contactImages[contact.image]
