@@ -24,7 +24,7 @@ export type ViewType =
 export const allViews: ViewType[] = [
 	{
 		type: 'view',
-		view: 'MenusView',
+		view: 'app.menus.Index',
 		title: 'Menus',
 		icon: 'bowl',
 		tint: c.emerald,
@@ -32,7 +32,7 @@ export const allViews: ViewType[] = [
 	},
 	{
 		type: 'view',
-		view: 'SISView',
+		view: 'app.sis.Index',
 		title: 'SIS',
 		icon: 'fingerprint',
 		tint: c.goldenrod,
@@ -48,7 +48,7 @@ export const allViews: ViewType[] = [
 	},
 	{
 		type: 'view',
-		view: 'CalendarView',
+		view: 'app.events.List',
 		title: 'Calendar',
 		icon: 'calendar',
 		tint: c.coolPurple,
@@ -65,7 +65,7 @@ export const allViews: ViewType[] = [
 	},
 	{
 		type: 'view',
-		view: 'StreamingView',
+		view: 'app.streamingMedia.Index',
 		title: 'Streaming Media',
 		icon: 'video',
 		tint: c.denim,
@@ -73,7 +73,7 @@ export const allViews: ViewType[] = [
 	},
 	{
 		type: 'view',
-		view: 'NewsView',
+		view: 'app.news.Index',
 		title: 'News',
 		icon: 'news',
 		tint: c.eggplant,
@@ -90,7 +90,7 @@ export const allViews: ViewType[] = [
 	},
 	{
 		type: 'view',
-		view: 'ContactsView',
+		view: 'app.contacts.List',
 		title: 'Important Contacts',
 		icon: 'phone',
 		tint: c.crimson,
@@ -98,7 +98,7 @@ export const allViews: ViewType[] = [
 	},
 	{
 		type: 'view',
-		view: 'TransportationView',
+		view: 'app.transit.Index',
 		title: 'Transportation',
 		icon: 'address',
 		tint: c.cardTable,
@@ -114,7 +114,7 @@ export const allViews: ViewType[] = [
 	},
 	{
 		type: 'view',
-		view: 'StudentOrgsView',
+		view: 'app.studentOrgs.List',
 		title: 'Student Orgs',
 		icon: 'globe',
 		tint: c.periwinkle,
@@ -131,7 +131,7 @@ export const allViews: ViewType[] = [
 	},
 	{
 		type: 'view',
-		view: 'HelpView',
+		view: 'app.help.Overview',
 		title: 'Report A Problem',
 		icon: 'help',
 		tint: c.lavender,
