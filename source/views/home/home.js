@@ -64,7 +64,7 @@ class HomePage extends React.Component<Props> {
 												name: view.view,
 												options: {
 													topBar: {
-														title: 'pushed',
+														title: view.title,
 													},
 												},
 											},
