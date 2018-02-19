@@ -181,6 +181,7 @@ export class StudentOrgsView extends React.PureComponent<Props, State> {
 				options: {
 					topBar: {
 						title: data.name,
+						largeTitle: true,
 					},
 				},
 				passProps: {
