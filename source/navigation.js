@@ -38,8 +38,6 @@ import {StudentOrgsView, StudentOrgsDetailView} from './views/student-orgs'
 import {FaqView} from './views/faqs'
 import HelpView from './views/help'
 
-console.log(Navigation)
-
 Navigation.registerComponent('app.Index', () => HomeView)
 Navigation.registerComponent('app.component.Filter', () => FilterView)
 Navigation.registerComponent('app.contacts.Detail', () => ContactsDetailView)
@@ -115,6 +113,20 @@ Navigation.events().onAppLaunched(() => {
 								title: 'Home',
 								largeTitle: true,
 								backgroundColor: c.olevilleGold,
+								rightButtons: [
+									{
+										id: 'Edit',
+										title: 'Edit',
+										buttonColor: c.infoBlue,
+									},
+								],
+								leftButtons: [
+									{
+										id: 'Settings',
+										title: 'Settings',
+										buttonColor: c.infoBlue,
+									},
+								],
 							},
 						},
 					},
